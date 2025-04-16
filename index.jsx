@@ -1,2845 +1,2487 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { SelectBox } from "@/components/SelectBox"
 import Header from "@/components/Header"
 import Sidebar from "@/components/Sidebar"
 import RightSidebar from "@/components/RightSidebar"
 import {
-  Box,
-  Heading,
-  Image,
-  Flex,
-  Text,
-  useBreakpointValue,
-  Button,
-  useDisclosure,
-  IconButton,
-  Tooltip,
-  HStack,
-  Avatar,
-  AvatarGroup,
-  Badge,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  FormControl,
-  FormLabel,
-  Select,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Divider,
-  useToast,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
+    Box,
+    Heading,
+    Image,
+    Flex,
+    Text,
+    useBreakpointValue,
+    Button,
+    useDisclosure,
+    IconButton,
+    Tooltip,
+    HStack,
+    InputGroup,
+    InputLeftElement,
+    Input,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel,
+    Grid,
+    GridItem,
+    Stat,
+    StatLabel,
+    StatNumber,
+    StatHelpText,
+    Progress,
+    Table,
+    Thead,
+    Tbody,
+    Tr,
+    Th,
+    Td,
+    Badge,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    Select,
+    FormControl,
+    FormLabel,
+    useToast,
+    Divider,
+    Card,
+    CardHeader,
+    CardBody,
+    CardFooter,
+    Stack,
+    StackDivider,
+    Checkbox,
+    Radio,
+    RadioGroup,
 } from "@chakra-ui/react"
-import {
-  Calendar,
-  ChevronDown,
-  Search,
-  Users,
-  UserPlus,
-  Mail,
-  MessageSquare,
-  Phone,
-  MoreVertical,
-  Filter,
-  Briefcase,
-  Check,
-} from "lucide-react"
+import { Calendar, Clock, ChevronDown, Search, Download, FileText, BarChart2, PieChart, TrendingUp, Users, Briefcase, CheckCircle, ClockIcon, AlertCircle, Filter, Share2, Printer, Mail, MoreVertical, ArrowUpRight, ArrowDownRight, FileSpreadsheet, FileIcon as FilePdf, Trash2} from 'lucide-react'
+import { Chart } from "react-google-charts"
 
 // Initialize localStorage if it doesn't exist
 const initializeLocalStorage = () => {
-  if (typeof window !== "undefined") {
-    // Initialize team members data
-    if (!localStorage.getItem("teamMembersData")) {
-      localStorage.setItem("teamMembersData", JSON.stringify(teamMembersData))
+    if (typeof window !== "undefined") {
+        // No need to initialize anything for reports as we'll use existing data
     }
-
-    // Initialize department data
-    if (!localStorage.getItem("departmentsData")) {
-      localStorage.setItem("departmentsData", JSON.stringify(departmentsData))
-    }
-  }
 }
-
-// Sample team members data
-const teamMembersData = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@peakanddale.com",
-    role: "Project Manager",
-    department: "SOFTWARE DEVELOPMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Jan 15, 2023",
-    status: "Active",
-    phone: "+1 (555) 123-4567",
-    projects: ["Bulk SMS Platform", "Peak and Dale HRMS"],
-    tasks: ["Create API documentation", "Design user interface"],
-    isOnline: true,
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@peakanddale.com",
-    role: "Senior Developer",
-    department: "SOFTWARE DEVELOPMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Feb 3, 2023",
-    status: "Active",
-    phone: "+1 (555) 234-5678",
-    projects: ["Bulk SMS Platform", "Village Hopecore LMS"],
-    tasks: ["Setup database schema", "Implement offline sync"],
-    isOnline: true,
-  },
-  {
-    id: 3,
-    name: "Michael Chen",
-    email: "michael.chen@peakanddale.com",
-    role: "UI/UX Designer",
-    department: "WEB DEVELOPMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Mar 10, 2023",
-    status: "Active",
-    phone: "+1 (555) 345-6789",
-    projects: ["APAD Website", "Unga Corporate Website"],
-    tasks: ["Design homepage layout", "Create wireframes"],
-    isOnline: false,
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    email: "emily.davis@peakanddale.com",
-    role: "Frontend Developer",
-    department: "WEB DEVELOPMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Apr 5, 2023",
-    status: "Active",
-    phone: "+1 (555) 456-7890",
-    projects: ["Mhasibu Website", "Kimisitu Website"],
-    tasks: ["Implement responsive design", "Create financial calculators"],
-    isOnline: true,
-  },
-  {
-    id: 5,
-    name: "David Wilson",
-    email: "david.wilson@peakanddale.com",
-    role: "IT Support Specialist",
-    department: "TECH SUPPORT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "May 12, 2023",
-    status: "Active",
-    phone: "+1 (555) 567-8901",
-    projects: ["IT Helpdesk System", "Network Infrastructure Upgrade"],
-    tasks: ["Design ticket workflow", "Audit current infrastructure"],
-    isOnline: false,
-  },
-  {
-    id: 6,
-    name: "Jessica Brown",
-    email: "jessica.brown@peakanddale.com",
-    role: "Business Analyst",
-    department: "BUSINESS DEVELOPMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Jun 20, 2023",
-    status: "Active",
-    phone: "+1 (555) 678-9012",
-    projects: ["Market Expansion Strategy", "Partnership Development Program"],
-    tasks: ["Conduct market research", "Identify potential partners"],
-    isOnline: true,
-  },
-  {
-    id: 7,
-    name: "Robert Taylor",
-    email: "robert.taylor@peakanddale.com",
-    role: "Strategy Consultant",
-    department: "STRATEGY DEVELOPMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Jul 8, 2023",
-    status: "Active",
-    phone: "+1 (555) 789-0123",
-    projects: ["Digital Transformation Roadmap", "Product Diversification Plan"],
-    tasks: ["Assess current digital maturity", "Research market opportunities"],
-    isOnline: false,
-  },
-  {
-    id: 8,
-    name: "Amanda Martinez",
-    email: "amanda.martinez@peakanddale.com",
-    role: "Social Media Manager",
-    department: "INFLUENCER & REPUTATION MANAGEMENT",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Aug 15, 2023",
-    status: "Active",
-    phone: "+1 (555) 890-1234",
-    projects: ["Social Media Influencer Program", "KTB Influencer Campaign"],
-    tasks: ["Define program objectives", "Identify target influencers"],
-    isOnline: true,
-  },
-  {
-    id: 9,
-    name: "Daniel Lee",
-    email: "daniel.lee@peakanddale.com",
-    role: "Creative Director",
-    department: "CREATIVE",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Sep 3, 2023",
-    status: "Active",
-    phone: "+1 (555) 901-2345",
-    projects: ["Peak and Dale Brand Identity", "Unga Limited Brand Refresh"],
-    tasks: ["Conduct brand workshop", "Develop brand strategy"],
-    isOnline: false,
-  },
-  {
-    id: 10,
-    name: "Sophia Garcia",
-    email: "sophia.garcia@peakanddale.com",
-    role: "Production Manager",
-    department: "PRODUCTION",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Oct 12, 2023",
-    status: "Active",
-    phone: "+1 (555) 012-3456",
-    projects: ["Product Photography Session", "Indomie TVC Production"],
-    tasks: ["Prepare shot list", "Create storyboard"],
-    isOnline: true,
-  },
-  {
-    id: 11,
-    name: "James Wilson",
-    email: "james.wilson@peakanddale.com",
-    role: "PR Specialist",
-    department: "PUBLIC RELATIONS & COMMUNICATIONS",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Nov 5, 2023",
-    status: "Active",
-    phone: "+1 (555) 123-4567",
-    projects: ["Press Release Campaign", "Corporate Crisis Management Plan"],
-    tasks: ["Develop press release schedule", "Identify potential crisis scenarios"],
-    isOnline: false,
-  },
-  {
-    id: 12,
-    name: "Olivia Thompson",
-    email: "olivia.thompson@peakanddale.com",
-    role: "Event Coordinator",
-    department: "EVENT MANAGEMENT & TRAINING",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Dec 10, 2023",
-    status: "Active",
-    phone: "+1 (555) 234-5678",
-    projects: ["Annual Corporate Conference", "Sales Team Training Program"],
-    tasks: ["Select venue", "Develop training materials"],
-    isOnline: true,
-  },
-  {
-    id: 13,
-    name: "William Clark",
-    email: "william.clark@peakanddale.com",
-    role: "Marketing Manager",
-    department: "MARKETING",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Jan 8, 2024",
-    status: "Active",
-    phone: "+1 (555) 345-6789",
-    projects: ["Product Launch Campaign", "Email Marketing Automation"],
-    tasks: ["Develop campaign strategy", "Design email templates"],
-    isOnline: false,
-  },
-  {
-    id: 14,
-    name: "Emma Rodriguez",
-    email: "emma.rodriguez@peakanddale.com",
-    role: "Financial Analyst",
-    department: "ACCOUNTS",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Feb 15, 2024",
-    status: "Active",
-    phone: "+1 (555) 456-7890",
-    projects: ["Financial Reporting System", "Budget Planning Process"],
-    tasks: ["Define reporting requirements", "Create budget templates"],
-    isOnline: true,
-  },
-  {
-    id: 15,
-    name: "Alexander White",
-    email: "alexander.white@peakanddale.com",
-    role: "HR Specialist",
-    department: "HUMAN RESOURCES",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Mar 3, 2024",
-    status: "Active",
-    phone: "+1 (555) 567-8901",
-    projects: ["Employee Onboarding System", "Performance Review Framework"],
-    tasks: ["Map onboarding process", "Define performance metrics"],
-    isOnline: false,
-  },
-  {
-    id: 16,
-    name: "Natalie Green",
-    email: "natalie.green@peakanddale.com",
-    role: "Office Manager",
-    department: "ADMINISTRATION",
-    avatar: "/placeholder.svg?height=40&width=40",
-    dateAdded: "Apr 10, 2024",
-    status: "Active",
-    phone: "+1 (555) 678-9012",
-    projects: ["Office Relocation Project", "Document Management System"],
-    tasks: ["Create relocation timeline", "Define document categories"],
-    isOnline: true,
-  },
-]
-
-// Sample departments data
-const departmentsData = [
-  {
-    id: 1,
-    name: "SOFTWARE DEVELOPMENT",
-    description: "Develops software applications and systems",
-    memberCount: 2,
-    projectCount: 4,
-    taskCount: 8,
-    lead: "John Smith",
-  },
-  {
-    id: 2,
-    name: "WEB DEVELOPMENT",
-    description: "Creates and maintains websites and web applications",
-    memberCount: 2,
-    projectCount: 4,
-    taskCount: 6,
-    lead: "Michael Chen",
-  },
-  {
-    id: 3,
-    name: "TECH SUPPORT",
-    description: "Provides technical assistance and support",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 5,
-    lead: "David Wilson",
-  },
-  {
-    id: 4,
-    name: "BUSINESS DEVELOPMENT",
-    description: "Identifies growth opportunities and builds partnerships",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 6,
-    lead: "Jessica Brown",
-  },
-  {
-    id: 5,
-    name: "STRATEGY DEVELOPMENT",
-    description: "Develops long-term strategic plans and initiatives",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 6,
-    lead: "Robert Taylor",
-  },
-  {
-    id: 6,
-    name: "INFLUENCER & REPUTATION MANAGEMENT",
-    description: "Manages brand reputation and influencer relationships",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 4,
-    lead: "Amanda Martinez",
-  },
-  {
-    id: 7,
-    name: "CREATIVE",
-    description: "Handles creative design and branding",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 6,
-    lead: "Daniel Lee",
-  },
-  {
-    id: 8,
-    name: "PRODUCTION",
-    description: "Manages production of media and content",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 4,
-    lead: "Sophia Garcia",
-  },
-  {
-    id: 9,
-    name: "PUBLIC RELATIONS & COMMUNICATIONS",
-    description: "Manages public relations and communications",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 5,
-    lead: "James Wilson",
-  },
-  {
-    id: 10,
-    name: "EVENT MANAGEMENT & TRAINING",
-    description: "Organizes events and training programs",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 5,
-    lead: "Olivia Thompson",
-  },
-  {
-    id: 11,
-    name: "MARKETING",
-    description: "Develops and implements marketing strategies",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 6,
-    lead: "William Clark",
-  },
-  {
-    id: 12,
-    name: "ACCOUNTS",
-    description: "Manages financial accounts and reporting",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 5,
-    lead: "Emma Rodriguez",
-  },
-  {
-    id: 13,
-    name: "HUMAN RESOURCES",
-    description: "Manages employee relations and recruitment",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 6,
-    lead: "Alexander White",
-  },
-  {
-    id: 14,
-    name: "ADMINISTRATION",
-    description: "Handles administrative tasks and office management",
-    memberCount: 1,
-    projectCount: 2,
-    taskCount: 6,
-    lead: "Natalie Green",
-  },
-]
-
-// Dropdown options
-const dropDownOptions = [
-  { label: "Today", value: "today" },
-  { label: "This Week", value: "this-week" },
-  { label: "This Month", value: "this-month" },
-  { label: "This Quarter", value: "this-quarter" },
-]
 
 // Custom checkbox component
 const CustomCheckbox = ({ isChecked, onChange }) => {
-  return (
-    <Box
-      onClick={onChange}
-      position="relative"
-      width="20px"
-      height="20px"
-      borderRadius="6px"
-      border="2px solid"
-      borderColor={isChecked ? "#81BE41" : "gray.300"}
-      bg={isChecked ? "#81BE41" : "white"}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      cursor="pointer"
-      transition="all 0.3s"
-      mr="12px"
-      _hover={{
-        borderColor: isChecked ? "#81BE41" : "#81BE41",
-        transform: "scale(1.05)",
-      }}
-    >
-      {isChecked && <Box as={Check} size={14} color="white" />}
-    </Box>
-  )
-}
-
-// Define theme colors and styles
-const theme = {
-  colors: {
-    primary: "#81BE41",
-    primaryHover: "#6ca32e",
-    primaryLight: "rgba(129, 190, 65, 0.1)",
-    primaryLighter: "rgba(129, 190, 65, 0.05)",
-    textColor: "#000000",
-    textMuted: "#4A5568",
-    borderColor: "#E2E8F0",
-    borderColorDarker: "#CBD5E0",
-  },
-  fontSizes: {
-    xs: "13px", // Increased by 1px
-    sm: "15px", // Increased by 1px
-    md: "17px", // Increased by 1px
-    lg: "19px", // Increased by 1px
-    xl: "21px", // Increased by 1px
-    "2xl": "25px", // Increased by 1px
-    "3xl": "31px", // Increased by 1px
-  },
-  spacing: {
-    xs: "4px",
-    sm: "8px",
-    md: "16px",
-    lg: "24px",
-    xl: "32px",
-  },
-  borderRadius: {
-    sm: "6px",
-    md: "10px",
-    lg: "16px",
-    full: "9999px",
-  },
-  shadows: {
-    sm: "0 1px 3px rgba(0,0,0,0.1)",
-    md: "0 4px 6px rgba(0,0,0,0.1)",
-    lg: "0 10px 15px rgba(0,0,0,0.1)",
-  },
-  transitions: {
-    fast: "0.2s",
-    normal: "0.3s",
-    slow: "0.5s",
-  },
-}
-
-export default function TeamsPage() {
-  // State variables
-  const [teamMembers, setTeamMembers] = useState([])
-  const [departments, setDepartments] = useState([])
-  const [userDepartment, setUserDepartment] = useState("SOFTWARE DEVELOPMENT") // Default department for the current user
-  const [filteredMembers, setFilteredMembers] = useState([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedDepartments, setSelectedDepartments] = useState([])
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
-  const [selectedMember, setSelectedMember] = useState(null)
-  const [activeView, setActiveView] = useState("team") // team, departments
-  const [projectsData, setProjectsData] = useState([])
-  const [tasksData, setTasksData] = useState([])
-
-  // Modal states
-  const { isOpen: isInviteOpen, onOpen: onInviteOpen, onClose: onInviteClose } = useDisclosure()
-  const { isOpen: isMemberDetailsOpen, onOpen: onMemberDetailsOpen, onClose: onMemberDetailsClose } = useDisclosure()
-  const {
-    isOpen: isDepartmentDetailsOpen,
-    onOpen: onDepartmentDetailsOpen,
-    onClose: onDepartmentDetailsClose,
-  } = useDisclosure()
-  const [selectedDepartment, setSelectedDepartment] = useState(null)
-
-  // Toast for notifications
-  const toast = useToast()
-
-  // Responsive variables
-  const mainContentWidth = useBreakpointValue({ base: "100%", md: "69%" })
-
-  // Initialize localStorage on component mount
-  useEffect(() => {
-    initializeLocalStorage()
-
-    // Load data from localStorage
-    if (typeof window !== "undefined") {
-      // Load team members
-      const teamMembersData = localStorage.getItem("teamMembersData")
-      if (teamMembersData) {
-        const members = JSON.parse(teamMembersData)
-        setTeamMembers(members)
-
-        // Filter members based on user's department
-        const filtered = members.filter((member) => member.department === userDepartment)
-        setFilteredMembers(filtered)
-      }
-
-      // Load departments
-      const departmentsData = localStorage.getItem("departmentsData")
-      if (departmentsData) {
-        setDepartments(JSON.parse(departmentsData))
-      }
-
-      // Load projects
-      const projectsData = localStorage.getItem("projectsData")
-      if (projectsData) {
-        setProjectsData(JSON.parse(projectsData))
-      }
-
-      // Load tasks
-      const tasksData = localStorage.getItem("tasksData")
-      if (tasksData) {
-        setTasksData(JSON.parse(tasksData))
-      }
-    }
-  }, [userDepartment])
-
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
-
-    if (query === "") {
-      // If search is cleared, show members from user's department
-      const filtered = teamMembers.filter((member) =>
-        selectedDepartments.length === 0
-          ? member.department === userDepartment
-          : selectedDepartments.includes(member.department),
-      )
-      setFilteredMembers(filtered)
-    } else {
-      // Filter based on search query and selected departments
-      const filtered = teamMembers.filter((member) => {
-        const matchesSearch =
-          member.name.toLowerCase().includes(query) ||
-          member.email.toLowerCase().includes(query) ||
-          member.role.toLowerCase().includes(query)
-
-        const matchesDepartment =
-          selectedDepartments.length === 0
-            ? member.department === userDepartment
-            : selectedDepartments.includes(member.department)
-
-        return matchesSearch && matchesDepartment
-      })
-      setFilteredMembers(filtered)
-    }
-  }
-
-  // Handle department selection for filtering
-  const handleDepartmentSelection = (department) => {
-    if (department === "ALL DEPARTMENTS") {
-      setSelectedDepartments([])
-
-      // Show only members from user's department when "All Departments" is selected
-      const filtered = teamMembers.filter((member) => member.department === userDepartment)
-      setFilteredMembers(filtered)
-    } else {
-      // Toggle the selected department
-      const newSelection = [...selectedDepartments]
-
-      if (newSelection.includes(department)) {
-        // Remove department if already selected
-        const updatedSelection = newSelection.filter((dep) => dep !== department)
-        setSelectedDepartments(updatedSelection)
-
-        // If no departments are selected, show only user's department
-        if (updatedSelection.length === 0) {
-          const filtered = teamMembers.filter((member) => member.department === userDepartment)
-          setFilteredMembers(filtered)
-        } else {
-          // Filter based on selected departments
-          const filtered = teamMembers.filter((member) => updatedSelection.includes(member.department))
-          setFilteredMembers(filtered)
-        }
-      } else {
-        // Add department to selection
-        newSelection.push(department)
-        setSelectedDepartments(newSelection)
-
-        // Filter based on selected departments
-        const filtered = teamMembers.filter((member) => newSelection.includes(member.department))
-        setFilteredMembers(filtered)
-      }
-    }
-  }
-
-  // Handle member click to show details
-  const handleMemberClick = (member) => {
-    setSelectedMember(member)
-    onMemberDetailsOpen()
-  }
-
-  // Handle department click to show details
-  const handleDepartmentClick = (department) => {
-    setSelectedDepartment(department)
-    onDepartmentDetailsOpen()
-  }
-
-  // Handle invite new member
-  const handleInviteMember = (e) => {
-    e.preventDefault()
-
-    // Get form data
-    const formData = new FormData(e.target)
-    const name = formData.get("name")
-    const email = formData.get("email")
-    const role = formData.get("role")
-    const department = formData.get("department")
-
-    // Create new member
-    const newMember = {
-      id: teamMembers.length + 1,
-      name,
-      email,
-      role,
-      department,
-      avatar: "/placeholder.svg?height=40&width=40",
-      dateAdded: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      status: "Pending",
-      phone: "",
-      projects: [],
-      tasks: [],
-      isOnline: false,
-    }
-
-    // Add new member to state
-    const updatedMembers = [...teamMembers, newMember]
-    setTeamMembers(updatedMembers)
-
-    // Update filtered members if the new member belongs to the user's department
-    // or one of the selected departments
-    if (department === userDepartment || (selectedDepartments.length > 0 && selectedDepartments.includes(department))) {
-      setFilteredMembers([...filteredMembers, newMember])
-    }
-
-    // Update localStorage
-    localStorage.setItem("teamMembersData", JSON.stringify(updatedMembers))
-
-    // Update department member count
-    const updatedDepartments = departments.map((dept) => {
-      if (dept.name === department) {
-        return {
-          ...dept,
-          memberCount: dept.memberCount + 1,
-        }
-      }
-      return dept
-    })
-    setDepartments(updatedDepartments)
-    localStorage.setItem("departmentsData", JSON.stringify(updatedDepartments))
-
-    // Close modal and show success message
-    onInviteClose()
-    toast({
-      title: "Invitation sent",
-      description: `Invitation sent to ${name} (${email})`,
-      status: "success",
-      duration: 5000,
-      isClosable: true,
-      position: "top-right",
-      variant: "solid",
-      containerStyle: {
-        borderRadius: "10px",
-        background: "#81BE41",
-        color: "white",
-      },
-    })
-  }
-
-  // Get department projects
-  const getDepartmentProjects = (departmentName) => {
-    return projectsData.filter((project) => project.department === departmentName)
-  }
-
-  // Get department tasks
-  const getDepartmentTasks = (departmentName) => {
-    return tasksData.filter((task) => task.department === departmentName)
-  }
-
-  // Get member projects
-  const getMemberProjects = (memberProjects) => {
-    return projectsData.filter((project) => memberProjects.includes(project.buttonText))
-  }
-
-  // Get member tasks
-  const getMemberTasks = (memberTasks) => {
-    return tasksData.filter((task) => memberTasks.includes(task.taskName))
-  }
-
-  // Add a click handler to close the dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isFilterDropdownOpen && !event.target.closest("[data-filter-dropdown]")) {
-        setIsFilterDropdownOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isFilterDropdownOpen])
-
-  return (
-    <Box bg="white" w="100%" overflowX="hidden">
-      <Flex alignItems="flex-start" flexDirection={{ base: "column", md: "row" }}>
-        {/* Left Sidebar */}
-        <Box position={{ md: "sticky" }} top={{ md: "0" }} height={{ md: "100vh" }} zIndex={{ md: 10 }}>
-          <Sidebar />
+    return (
+        <Box
+            onClick={onChange}
+            position="relative"
+            width="20px"
+            height="20px"
+            borderRadius="4px"
+            border="2px solid"
+            borderColor={isChecked ? "#81BE41" : "gray.300"}
+            bg={isChecked ? "#81BE41" : "white"}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            cursor="pointer"
+            transition="all 0.2s"
+            mr="10px"
+        >
+            {isChecked && <CheckCircle size={14} color="white" />}
         </Box>
+    )
+}
 
-        <Box flex={1} position="relative" minH={{ base: "auto", md: "100vh" }}>
-          {/* Header Section */}
-          <Box
-            bgGradient={`linear-gradient(180deg, ${theme.colors.primary} 0%, rgba(129, 190, 65, 0) 100%)`}
-            w="100%"
-            px={{ base: "20px", md: "28px" }}
-            py={{ base: "20px", md: "24px" }}
-          >
-            <Header mb="20px" flexDirection={{ base: "column", md: "row" }} />
-          </Box>
+// Dropdown options
+const dropDownOptions = [
+    { label: "Today", value: "today" },
+    { label: "This Week", value: "this-week" },
+    { label: "This Month", value: "this-month" },
+    { label: "This Quarter", value: "this-quarter" },
+    { label: "This Year", value: "this-year" },
+    { label: "Custom Range", value: "custom" },
+]
 
-          {/* Main Content Area */}
-          <Flex flexDirection={{ base: "column", md: "row" }}>
-            {/* Main Content */}
-            <Box
-              w={{ base: "100%", md: mainContentWidth }}
-              borderColor={theme.colors.borderColor}
-              borderRightWidth={{ md: "1px" }}
-              borderStyle="solid"
-              bg="white"
-              order={{ base: 2, md: 1 }}
-            >
-              {/* Page Title and Filters */}
-              <Flex
-                px={{ base: "20px", md: "28px" }}
-                py={{ base: "24px", md: "24px" }}
-                justifyContent="space-between"
-                alignItems={{ base: "flex-start", md: "center" }}
-                flexDirection={{ base: "column", md: "row" }}
-                gap={{ base: "20px", md: "0" }}
-              >
-                <Flex flexDirection="column" alignItems="flex-start" mt="0">
-                  <Heading
-                    as="h1"
-                    letterSpacing="1.50px"
-                    fontSize={theme.fontSizes["2xl"]}
-                    fontWeight={700}
-                    color={theme.colors.textColor}
-                    mb="4px"
-                  >
-                    Collaborate with Your Team
-                  </Heading>
-                  <Heading as="h6" fontSize={theme.fontSizes.lg} fontWeight={500} color={theme.colors.textColor}>
-                    Teams
-                  </Heading>
-                </Flex>
+export default function ReportsPage() {
+    // State variables
+    const [userDepartment, setUserDepartment] = useState("SOFTWARE DEVELOPMENT") // Default department for the current user
+    const [projects, setProjects] = useState([])
+    const [tasks, setTasks] = useState([])
+    const [files, setFiles] = useState([])
+    const [teamMembers, setTeamMembers] = useState([])
+    const [departments, setDepartments] = useState([])
+    const [dateRange, setDateRange] = useState("this-month")
+    const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+    const [selectedDepartments, setSelectedDepartments] = useState([])
+    const [selectedProjects, setSelectedProjects] = useState([])
+    const [searchQuery, setSearchQuery] = useState("")
+    const [filteredProjects, setFilteredProjects] = useState([])
+    const [filteredTasks, setFilteredTasks] = useState([])
+    const [reportType, setReportType] = useState("overview") // overview, projects, tasks, team, files
+    const [generatedReports, setGeneratedReports] = useState([])
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+    const [reportFormat, setReportFormat] = useState("pdf")
+    const [customDateRange, setCustomDateRange] = useState({ start: "", end: "" })
+    const [reportData, setReportData] = useState(null)
 
-                <Flex
-                  gap={{ base: "16px", md: "20px" }}
-                  w={{ base: "100%", md: "auto" }}
-                  justifyContent={{ base: "space-between", md: "flex-end" }}
-                  alignItems="center"
-                >
-                  {/* View toggle buttons */}
-                  <HStack spacing={3} mr={3}>
-                    <Tooltip label="Team View" placement="top" hasArrow bg={theme.colors.primary}>
-                      <IconButton
-                        aria-label="Team View"
-                        icon={<Users size={22} />}
-                        size="md"
-                        variant={activeView === "team" ? "solid" : "ghost"}
-                        colorScheme={activeView === "team" ? "green" : "gray"}
-                        onClick={() => setActiveView("team")}
-                        _hover={{ bg: activeView === "team" ? "" : theme.colors.primaryLighter }}
-                        color={activeView === "team" ? "white" : theme.colors.textColor}
-                        bg={activeView === "team" ? theme.colors.primary : ""}
-                        boxShadow={activeView === "team" ? theme.shadows.sm : "none"}
-                        transition={theme.transitions.normal}
-                      />
-                    </Tooltip>
-                    <Tooltip label="Departments View" placement="top" hasArrow bg={theme.colors.primary}>
-                      <IconButton
-                        aria-label="Departments View"
-                        icon={<Briefcase size={22} />}
-                        size="md"
-                        variant={activeView === "departments" ? "solid" : "ghost"}
-                        colorScheme={activeView === "departments" ? "green" : "gray"}
-                        onClick={() => setActiveView("departments")}
-                        _hover={{ bg: activeView === "departments" ? "" : theme.colors.primaryLighter }}
-                        color={activeView === "departments" ? "white" : theme.colors.textColor}
-                        bg={activeView === "departments" ? theme.colors.primary : ""}
-                        boxShadow={activeView === "departments" ? theme.shadows.sm : "none"}
-                        transition={theme.transitions.normal}
-                      />
-                    </Tooltip>
-                  </HStack>
+    // Modal states
+    const { isOpen: isGenerateReportOpen, onOpen: onGenerateReportOpen, onClose: onGenerateReportClose } = useDisclosure()
+    const { isOpen: isReportDetailsOpen, onOpen: onReportDetailsOpen, onClose: onReportDetailsClose } = useDisclosure()
+    const [selectedReport, setSelectedReport] = useState(null)
 
-                  {/* Invite Member Button */}
-                  <Button
-                    onClick={onInviteOpen}
-                    bg={theme.colors.primary}
-                    color="white"
-                    _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-                    fontSize={theme.fontSizes.sm}
-                    fontWeight={600}
-                    h={{ base: "40px", md: "44px" }}
-                    px={{ base: "16px", md: "20px" }}
-                    py="0"
-                    borderRadius={theme.borderRadius.md}
-                    leftIcon={<UserPlus size={18} />}
-                    boxShadow={theme.shadows.sm}
-                    transition={theme.transitions.normal}
-                  >
-                    Invite team member
-                  </Button>
+    // Toast for notifications
+    const toast = useToast()
 
-                  <SelectBox
-                    shape="round"
-                    indicator={<Image src="images/img_arrowdown_black_900_01.svg" alt="Arrow Down" w="24px" h="24px" />}
-                    getOptionLabel={(e) => (
-                      <Box display="flex" alignItems="center">
-                        <Image src="images/img_uilcalender_gray_500.svg" alt="Uil:calender" w="20px" h="20px" />
-                        <span
-                          style={{ marginLeft: "8px", fontSize: theme.fontSizes.sm, color: theme.colors.textColor }}
-                        >
-                          {e.label}
-                        </span>
-                      </Box>
-                    )}
-                    name="uilcalender"
-                    placeholder={`Today`}
-                    options={dropDownOptions}
-                    style={{
-                      fontWeight: 500,
-                      fontSize: theme.fontSizes.sm,
-                      gap: "8px",
-                      borderColor: theme.colors.borderColorDarker,
-                      borderWidth: "1px",
-                      borderStyle: "solid",
-                      borderRadius: theme.borderRadius.md,
-                      w: { base: "48%", md: "130px" },
-                      h: "44px",
-                      transition: theme.transitions.normal,
-                    }}
-                  />
-                  <Box position="relative" w={{ base: "48%", md: "130px" }} data-filter-dropdown>
-                    <Button
-                      onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      w="100%"
-                      h="44px"
-                      px="16px"
-                      border="1px solid"
-                      borderColor={theme.colors.borderColorDarker}
-                      borderRadius={theme.borderRadius.md}
-                      bg="white"
-                      _hover={{ bg: theme.colors.primaryLighter, borderColor: theme.colors.primary }}
-                      transition={theme.transitions.normal}
-                    >
-                      <Flex alignItems="center" gap="8px">
-                        <Filter size={18} color={theme.colors.textColor} />
-                        <Text fontWeight={500} fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                          Filter
-                        </Text>
-                      </Flex>
-                      <Box as={ChevronDown} size={18} color={theme.colors.textColor} />
-                    </Button>
+    // Responsive variables
+    const mainContentWidth = useBreakpointValue({ base: "100%", md: "69%" })
+    const chartRef = useRef(null)
 
-                    {isFilterDropdownOpen && (
-                      <Box
-                        position="absolute"
-                        top="48px"
-                        left="0"
-                        right="0"
-                        zIndex="10"
-                        bg="white"
-                        boxShadow={theme.shadows.lg}
-                        borderRadius={theme.borderRadius.md}
-                        border="1px solid"
-                        borderColor={theme.colors.borderColor}
-                        maxH="350px"
-                        overflowY="auto"
-                        w="280px"
-                        animation="fadeIn 0.3s ease-in-out"
-                      >
-                        <Box p="14px 18px" borderBottom="1px solid" borderColor={theme.colors.borderColor}>
-                          <Text fontWeight="600" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                            Filter by Department
-                          </Text>
-                        </Box>
-                        <Box p="12px">
-                          <Flex
-                            align="center"
-                            p="10px 14px"
-                            cursor="pointer"
-                            borderRadius={theme.borderRadius.sm}
-                            _hover={{ bg: theme.colors.primaryLighter }}
-                            onClick={() => handleDepartmentSelection("ALL DEPARTMENTS")}
-                            transition={theme.transitions.fast}
-                          >
-                            <CustomCheckbox
-                              isChecked={selectedDepartments.length === 0}
-                              onChange={() => handleDepartmentSelection("ALL DEPARTMENTS")}
-                            />
-                            <Text fontSize={theme.fontSizes.sm} fontWeight="500" color={theme.colors.textColor}>
-                              All Departments
-                            </Text>
-                          </Flex>
-                          {departments.map((department) => (
-                            <Flex
-                              key={department.id}
-                              align="center"
-                              p="10px 14px"
-                              cursor="pointer"
-                              borderRadius={theme.borderRadius.sm}
-                              _hover={{ bg: theme.colors.primaryLighter }}
-                              onClick={() => handleDepartmentSelection(department.name)}
-                              transition={theme.transitions.fast}
-                            >
-                              <CustomCheckbox
-                                isChecked={selectedDepartments.includes(department.name)}
-                                onChange={() => handleDepartmentSelection(department.name)}
-                              />
-                              <Text fontSize={theme.fontSizes.sm} fontWeight="500" color={theme.colors.textColor}>
-                                {department.name.charAt(0) + department.name.slice(1).toLowerCase()}
-                              </Text>
-                            </Flex>
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-                  </Box>
-                </Flex>
-              </Flex>
+    // Initialize localStorage on component mount
+    useEffect(() => {
+        initializeLocalStorage()
 
-              {/* Search Bar */}
-              <Box px={{ base: "20px", md: "28px" }} pb="20px">
-                <InputGroup size="lg">
-                  <InputLeftElement pointerEvents="none" h="100%" pl="2">
-                    <Search color={theme.colors.textMuted} size={22} />
-                  </InputLeftElement>
-                  <Input
-                    placeholder="Search team members..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    borderRadius={theme.borderRadius.md}
-                    borderColor={theme.colors.borderColorDarker}
-                    _focus={{ borderColor: theme.colors.primary, boxShadow: `0 0 0 1px ${theme.colors.primary}` }}
-                    _hover={{ borderColor: theme.colors.primary }}
-                    fontSize={theme.fontSizes.sm}
-                    h="50px"
-                    pl="45px"
-                    color={theme.colors.textColor}
-                    transition={theme.transitions.normal}
-                  />
-                </InputGroup>
-              </Box>
+        // Load data from localStorage
+        if (typeof window !== "undefined") {
+            // Load projects
+            const projectsData = localStorage.getItem("projectsData")
+            if (projectsData) {
+                const parsedProjects = JSON.parse(projectsData)
+                setProjects(parsedProjects)
 
-              {/* Team Content */}
-              <Box
-                borderColor={theme.colors.borderColor}
-                borderTopWidth="1px"
-                borderStyle="solid"
-                bg="white"
-                px={{ base: "20px", md: "28px" }}
-                py={{ base: "24px", md: "28px" }}
-              >
-                {/* Add new employee-focused features */}
-                {/* Add a "Quick Actions" section at the top of the content area */}
-                <Box
-                  mb="28px"
-                  px={{ base: "20px", md: "24px" }}
-                  py="20px"
-                  bg={theme.colors.primaryLighter}
-                  borderRadius={theme.borderRadius.md}
-                  borderLeft={`4px solid ${theme.colors.primary}`}
-                  boxShadow={theme.shadows.sm}
-                >
-                  <Heading size="sm" mb="16px" color={theme.colors.textColor} fontSize={theme.fontSizes.md}>
-                    Quick Actions
-                  </Heading>
-                  <Flex flexWrap="wrap" gap="10px">
-                    <Button
-                      size="md"
-                      leftIcon={<MessageSquare size={16} />}
-                      variant="outline"
-                      borderColor={theme.colors.primary}
-                      color={theme.colors.textColor}
-                      _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                      fontSize={theme.fontSizes.sm}
-                      px="16px"
-                      py="8px"
-                      borderRadius={theme.borderRadius.md}
-                      transition={theme.transitions.normal}
-                    >
-                      Message Team
-                    </Button>
-                    <Button
-                      size="md"
-                      leftIcon={<Calendar size={16} />}
-                      variant="outline"
-                      borderColor={theme.colors.primary}
-                      color={theme.colors.textColor}
-                      _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                      fontSize={theme.fontSizes.sm}
-                      px="16px"
-                      py="8px"
-                      borderRadius={theme.borderRadius.md}
-                      transition={theme.transitions.normal}
-                    >
-                      Team Calendar
-                    </Button>
-                    <Button
-                      size="md"
-                      leftIcon={<Users size={16} />}
-                      variant="outline"
-                      borderColor={theme.colors.primary}
-                      color={theme.colors.textColor}
-                      _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                      fontSize={theme.fontSizes.sm}
-                      px="16px"
-                      py="8px"
-                      borderRadius={theme.borderRadius.md}
-                      transition={theme.transitions.normal}
-                    >
-                      Team Directory
-                    </Button>
-                    <Button
-                      size="md"
-                      leftIcon={<Briefcase size={16} />}
-                      variant="outline"
-                      borderColor={theme.colors.primary}
-                      color={theme.colors.textColor}
-                      _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                      fontSize={theme.fontSizes.sm}
-                      px="16px"
-                      py="8px"
-                      borderRadius={theme.borderRadius.md}
-                      transition={theme.transitions.normal}
-                    >
-                      Department Projects
-                    </Button>
-                  </Flex>
+                // Filter projects based on user's department
+                const departmentProjects = parsedProjects.filter((project) => project.department === userDepartment)
+                setFilteredProjects(departmentProjects)
+            }
+
+            // Load tasks
+            const tasksData = localStorage.getItem("tasksData")
+            if (tasksData) {
+                const parsedTasks = JSON.parse(tasksData)
+                setTasks(parsedTasks)
+
+                // Filter tasks based on user's department
+                const departmentTasks = parsedTasks.filter((task) => task.department === userDepartment)
+                setFilteredTasks(departmentTasks)
+            }
+
+            // Load files
+            const filesData = localStorage.getItem("filesData")
+            if (filesData) {
+                const parsedFiles = JSON.parse(filesData)
+                setFiles(parsedFiles.filter((file) => file.department === userDepartment))
+            }
+
+            // Load team members
+            const teamMembersData = localStorage.getItem("teamMembersData")
+            if (teamMembersData) {
+                const parsedTeamMembers = JSON.parse(teamMembersData)
+                setTeamMembers(parsedTeamMembers.filter((member) => member.department === userDepartment))
+            }
+
+            // Load departments
+            const departmentsData = localStorage.getItem("departmentsData")
+            if (departmentsData) {
+                setDepartments(JSON.parse(departmentsData))
+            }
+
+            // Load previously generated reports
+            const reportsData = localStorage.getItem("generatedReports")
+            if (reportsData) {
+                setGeneratedReports(JSON.parse(reportsData))
+            } else {
+                // Initialize with sample reports if none exist
+                const sampleReports = [
+                    {
+                        id: 1,
+                        name: "Monthly Project Status Report",
+                        type: "projects",
+                        format: "pdf",
+                        dateGenerated: "May 10, 2024",
+                        department: "SOFTWARE DEVELOPMENT",
+                        dateRange: "this-month",
+                        size: "1.2 MB",
+                        downloadUrl: "#",
+                    },
+                    {
+                        id: 2,
+                        name: "Team Performance Report",
+                        type: "team",
+                        format: "xlsx",
+                        dateGenerated: "May 5, 2024",
+                        department: "SOFTWARE DEVELOPMENT",
+                        dateRange: "this-month",
+                        size: "0.8 MB",
+                        downloadUrl: "#",
+                    },
+                    {
+                        id: 3,
+                        name: "Task Completion Analysis",
+                        type: "tasks",
+                        format: "pdf",
+                        dateGenerated: "April 28, 2024",
+                        department: "SOFTWARE DEVELOPMENT",
+                        dateRange: "this-month",
+                        size: "1.5 MB",
+                        downloadUrl: "#",
+                    },
+                ]
+                setGeneratedReports(sampleReports)
+                localStorage.setItem("generatedReports", JSON.stringify(sampleReports))
+            }
+        }
+    }, [userDepartment])
+
+    // Handle search input change
+    const handleSearchChange = (e) => {
+        const query = e.target.value.toLowerCase()
+        setSearchQuery(query)
+
+        if (query === "") {
+            // If search is cleared, show projects from user's department
+            const departmentProjects = projects.filter((project) => project.department === userDepartment)
+            setFilteredProjects(departmentProjects)
+
+            // Filter tasks based on user's department
+            const departmentTasks = tasks.filter((task) => task.department === userDepartment)
+            setFilteredTasks(departmentTasks)
+        } else {
+            // Filter projects based on search query
+            const filteredProjects = projects.filter(
+                (project) =>
+                    project.department === userDepartment &&
+                    (project.buttonText.toLowerCase().includes(query) ||
+                        project.descriptionText.toLowerCase().includes(query))
+            )
+            setFilteredProjects(filteredProjects)
+
+            // Filter tasks based on search query
+            const filteredTasks = tasks.filter(
+                (task) =>
+                    task.department === userDepartment &&
+                    (task.taskName.toLowerCase().includes(query) ||
+                        task.projectTitle.toLowerCase().includes(query))
+            )
+            setFilteredTasks(filteredTasks)
+        }
+    }
+
+    // Handle department selection for filtering
+    const handleDepartmentSelection = (department) => {
+        if (department === "ALL DEPARTMENTS") {
+            setSelectedDepartments([])
+        } else {
+            // Toggle the selected department
+            const newSelection = [...selectedDepartments]
+
+            if (newSelection.includes(department)) {
+                setSelectedDepartments(newSelection.filter((dep) => dep !== department))
+            } else {
+                setSelectedDepartments([...newSelection, department])
+            }
+        }
+    }
+
+    // Handle project selection for filtering
+    const handleProjectSelection = (project) => {
+        if (project === "ALL PROJECTS") {
+            setSelectedProjects([])
+        } else {
+            // Toggle the selected project
+            const newSelection = [...selectedProjects]
+
+            if (newSelection.includes(project)) {
+                setSelectedProjects(newSelection.filter((proj) => proj !== project))
+            } else {
+                setSelectedProjects([...newSelection, project])
+            }
+        }
+    }
+
+    // Handle date range change
+    const handleDateRangeChange = (range) => {
+        setDateRange(range)
+    }
+
+    // Generate report
+    const handleGenerateReport = () => {
+        setIsGeneratingReport(true)
+
+        // Simulate report generation
+        setTimeout(() => {
+            const newReport = {
+                id: generatedReports.length + 1,
+                name: getReportName(),
+                type: reportType,
+                format: reportFormat,
+                dateGenerated: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+                department: userDepartment,
+                dateRange: dateRange,
+                size: getReportSize(),
+                downloadUrl: "#",
+            }
+
+            const updatedReports = [newReport, ...generatedReports]
+            setGeneratedReports(updatedReports)
+            localStorage.setItem("generatedReports", JSON.stringify(updatedReports))
+
+            setIsGeneratingReport(false)
+            onGenerateReportClose()
+
+            toast({
+                title: "Report generated",
+                description: `${newReport.name} has been generated successfully.`,
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            })
+
+            // Set the newly generated report as selected and open details
+            setSelectedReport(newReport)
+            setReportData(generateReportData(newReport))
+            onReportDetailsOpen()
+        }, 2000)
+    }
+
+    // Get report name based on selected options
+    const getReportName = () => {
+        const dateRangeText = dateRange === "this-month" ? "Monthly" : dateRange === "this-week" ? "Weekly" : "Custom"
+
+        switch (reportType) {
+            case "overview":
+                return `${dateRangeText} Department Overview Report`
+            case "projects":
+                return `${dateRangeText} Project Status Report`
+            case "tasks":
+                return `${dateRangeText} Task Completion Analysis`
+            case "team":
+                return `${dateRangeText} Team Performance Report`
+            case "files":
+                return `${dateRangeText} Document Activity Report`
+            default:
+                return `${dateRangeText} Report`
+        }
+    }
+
+    // Get report size (simulated)
+    const getReportSize = () => {
+        const sizes = ["0.8 MB", "1.2 MB", "1.5 MB", "2.1 MB", "1.7 MB"]
+        return sizes[Math.floor(Math.random() * sizes.length)]
+    }
+
+    // Handle report download
+    const handleReportDownload = (report) => {
+        toast({
+            title: "Download started",
+            description: `Downloading ${report.name}`,
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+        })
+    }
+
+    // Handle report share
+    const handleReportShare = (report) => {
+        toast({
+            title: "Share report",
+            description: `Sharing options for ${report.name}`,
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+        })
+    }
+
+    // Handle report print
+    const handleReportPrint = (report) => {
+        toast({
+            title: "Print report",
+            description: `Preparing ${report.name} for printing`,
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+        })
+    }
+
+    // Handle report email
+    const handleReportEmail = (report) => {
+        toast({
+            title: "Email report",
+            description: `Preparing to email ${report.name}`,
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+        })
+    }
+
+    // Handle report delete
+    const handleReportDelete = (report) => {
+        const updatedReports = generatedReports.filter((r) => r.id !== report.id)
+        setGeneratedReports(updatedReports)
+        localStorage.setItem("generatedReports", JSON.stringify(updatedReports))
+
+        toast({
+            title: "Report deleted",
+            description: `${report.name} has been deleted`,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+        })
+
+        if (selectedReport && selectedReport.id === report.id) {
+            onReportDetailsClose()
+        }
+    }
+
+    // Handle report details view
+    const handleViewReportDetails = (report) => {
+        setSelectedReport(report)
+        setReportData(generateReportData(report))
+        onReportDetailsOpen()
+    }
+
+    // Generate report data based on report type
+    const generateReportData = (report) => {
+        switch (report.type) {
+            case "overview":
+                return generateOverviewReportData()
+            case "projects":
+                return generateProjectsReportData()
+            case "tasks":
+                return generateTasksReportData()
+            case "team":
+                return generateTeamReportData()
+            case "files":
+                return generateFilesReportData()
+            default:
+                return generateOverviewReportData()
+        }
+    }
+
+    // Generate overview report data
+    const generateOverviewReportData = () => {
+        const departmentProjects = projects.filter((project) => project.department === userDepartment)
+        const departmentTasks = tasks.filter((task) => task.department === userDepartment)
+
+        const todoProjects = departmentProjects.filter((project) => project.status === "todo").length
+        const inProgressProjects = departmentProjects.filter((project) => project.status === "inprogress").length
+        const finishedProjects = departmentProjects.filter((project) => project.status === "finished").length
+
+        const todoTasks = departmentTasks.filter((task) => task.status === "todo").length
+        const inProgressTasks = departmentTasks.filter((task) => task.status === "inprogress").length
+        const finishedTasks = departmentTasks.filter((task) => task.status === "finished").length
+
+        const totalProjects = departmentProjects.length
+        const totalTasks = departmentTasks.length
+        const completionRate = totalTasks > 0 ? Math.round((finishedTasks / totalTasks) * 100) : 0
+
+        return {
+            summary: {
+                totalProjects,
+                totalTasks,
+                completionRate,
+                teamMembers: teamMembers.length,
+            },
+            projectStatus: {
+                todo: todoProjects,
+                inProgress: inProgressProjects,
+                finished: finishedProjects,
+            },
+            taskStatus: {
+                todo: todoTasks,
+                inProgress: inProgressTasks,
+                finished: finishedTasks,
+            },
+            projectsList: departmentProjects.slice(0, 5),
+            tasksList: departmentTasks.slice(0, 5),
+        }
+    }
+
+    // Generate projects report data
+    const generateProjectsReportData = () => {
+        const departmentProjects = projects.filter((project) => project.department === userDepartment)
+
+        const todoProjects = departmentProjects.filter((project) => project.status === "todo")
+        const inProgressProjects = departmentProjects.filter((project) => project.status === "inprogress")
+        const finishedProjects = departmentProjects.filter((project) => project.status === "finished")
+
+        const totalProjects = departmentProjects.length
+        const completionRate = totalProjects > 0 ? Math.round((finishedProjects.length / totalProjects) * 100) : 0
+
+        return {
+            summary: {
+                totalProjects,
+                todoProjects: todoProjects.length,
+                inProgressProjects: inProgressProjects.length,
+                finishedProjects: finishedProjects.length,
+                completionRate,
+            },
+            projectsList: departmentProjects,
+            todoProjects,
+            inProgressProjects,
+            finishedProjects,
+        }
+    }
+
+    // Generate tasks report data
+    const generateTasksReportData = () => {
+        const departmentTasks = tasks.filter((task) => task.department === userDepartment)
+
+        const todoTasks = departmentTasks.filter((task) => task.status === "todo")
+        const inProgressTasks = departmentTasks.filter((task) => task.status === "inprogress")
+        const finishedTasks = departmentTasks.filter((task) => task.status === "finished")
+
+        const totalTasks = departmentTasks.length
+        const completionRate = totalTasks > 0 ? Math.round((finishedTasks.length / totalTasks) * 100) : 0
+
+        // Group tasks by project
+        const tasksByProject = {}
+        departmentTasks.forEach((task) => {
+            if (!tasksByProject[task.projectTitle]) {
+                tasksByProject[task.projectTitle] = []
+            }
+            tasksByProject[task.projectTitle].push(task)
+        })
+
+        return {
+            summary: {
+                totalTasks,
+                todoTasks: todoTasks.length,
+                inProgressTasks: inProgressTasks.length,
+                finishedTasks: finishedTasks.length,
+                completionRate,
+            },
+            tasksList: departmentTasks,
+            todoTasks,
+            inProgressTasks,
+            finishedTasks,
+            tasksByProject,
+        }
+    }
+
+    // Generate team report data
+    const generateTeamReportData = () => {
+        const departmentMembers = teamMembers.filter((member) => member.department === userDepartment)
+
+        // Calculate task completion by team member
+        const memberPerformance = departmentMembers.map((member) => {
+            const memberTasks = tasks.filter((task) =>
+                task.department === userDepartment &&
+                member.tasks.includes(task.taskName)
+            )
+
+            const completedTasks = memberTasks.filter((task) => task.status === "finished").length
+            const totalTasks = memberTasks.length
+            const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+            return {
+                ...member,
+                completedTasks,
+                totalTasks,
+                completionRate,
+            }
+        })
+
+        return {
+            summary: {
+                totalMembers: departmentMembers.length,
+                activeMembers: departmentMembers.filter((member) => member.isOnline).length,
+                averageCompletionRate: memberPerformance.length > 0
+                    ? Math.round(memberPerformance.reduce((sum, member) => sum + member.completionRate, 0) / memberPerformance.length)
+                    : 0,
+            },
+            membersList: departmentMembers,
+            memberPerformance,
+        }
+    }
+
+    // Generate files report data
+    const generateFilesReportData = () => {
+        const departmentFiles = files.filter((file) => file.department === userDepartment)
+
+        // Group files by project
+        const filesByProject = {}
+        departmentFiles.forEach((file) => {
+            if (!filesByProject[file.project]) {
+                filesByProject[file.project] = []
+            }
+            filesByProject[file.project].push(file)
+        })
+
+        // Group files by type
+        const filesByType = {}
+        departmentFiles.forEach((file) => {
+            if (!filesByType[file.type]) {
+                filesByType[file.type] = []
+            }
+            filesByType[file.type].push(file)
+        })
+
+        return {
+            summary: {
+                totalFiles: departmentFiles.length,
+                sharedFiles: departmentFiles.filter((file) => file.shared).length,
+                starredFiles: departmentFiles.filter((file) => file.starred).length,
+            },
+            filesList: departmentFiles,
+            filesByProject,
+            filesByType,
+        }
+    }
+
+    // Get report icon based on type
+    const getReportIcon = (type) => {
+        switch (type) {
+            case "overview":
+                return <BarChart2 size={24} color="#4A5568" />
+            case "projects":
+                return <Briefcase size={24} color="#4A5568" />
+            case "tasks":
+                return <CheckCircle size={24} color="#4A5568" />
+            case "team":
+                return <Users size={24} color="#4A5568" />
+            case "files":
+                return <FileText size={24} color="#4A5568" />
+            default:
+                return <FileText size={24} color="#4A5568" />
+        }
+    }
+
+    // Get report format icon
+    const getReportFormatIcon = (format) => {
+        switch (format) {
+            case "pdf":
+                return <FilePdf size={24} color="#FF5733" />
+            case "xlsx":
+                return <FileSpreadsheet size={24} color="#217346" />
+            default:
+                return <FileText size={24} color="#4A5568" />
+        }
+    }
+
+    // Add a click handler to close the dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isFilterDropdownOpen && !event.target.closest("[data-filter-dropdown]")) {
+                setIsFilterDropdownOpen(false)
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [isFilterDropdownOpen])
+
+    return (
+        <Box bg="white.a700" w="100%" overflowX="hidden">
+            <Flex alignItems="flex-start" flexDirection={{ base: "column", md: "row" }}>
+                {/* Left Sidebar */}
+                <Box position={{ md: "sticky" }} top={{ md: "0" }} height={{ md: "100vh" }} zIndex={{ md: 10 }}>
+                    <Sidebar />
                 </Box>
 
-                {activeView === "team" ? (
-                  <>
-                    {/* Team Members View */}
-                    {/* Add a "Team Announcements" section */}
-                    <Box mb="28px" display={activeView === "team" ? "block" : "none"}>
-                      <Flex alignItems="center" mb="16px">
-                        <Heading size="sm" fontSize={theme.fontSizes.md} color={theme.colors.textColor}>
-                          Team Announcements
-                        </Heading>
-                        <Button
-                          size="sm"
-                          ml="auto"
-                          variant="ghost"
-                          color={theme.colors.primary}
-                          _hover={{ bg: theme.colors.primaryLighter }}
-                          fontSize={theme.fontSizes.xs}
-                        >
-                          View All
-                        </Button>
-                      </Flex>
-                      <Box
-                        p="20px"
-                        borderRadius={theme.borderRadius.md}
-                        border="1px solid"
-                        borderColor={theme.colors.borderColor}
-                        bg="white"
-                        boxShadow={theme.shadows.sm}
-                        _hover={{ boxShadow: theme.shadows.md, borderColor: theme.colors.primary }}
-                        transition={theme.transitions.normal}
-                      >
-                        <Flex alignItems="center" mb="12px">
-                          <Avatar
-                            size="md"
-                            name="John Smith"
-                            src="/placeholder.svg?height=40&width=40"
-                            mr="12px"
-                            border="2px solid white"
-                            boxShadow={theme.shadows.sm}
-                          />
-                          <Box>
-                            <Text fontWeight="600" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                              John Smith
-                            </Text>
-                            <Text fontSize={theme.fontSizes.xs} color={theme.colors.textColor}>
-                              2 days ago
-                            </Text>
-                          </Box>
-                        </Flex>
-                        <Text fontSize={theme.fontSizes.sm} mb="16px" color={theme.colors.textColor} lineHeight="1.6">
-                          Team meeting scheduled for Friday at 10:00 AM to discuss the upcoming Bulk SMS Platform
-                          project milestones.
-                        </Text>
-                        <Flex justifyContent="space-between">
-                          <Button
-                            size="sm"
-                            leftIcon={<Calendar size={14} />}
-                            variant="ghost"
-                            color={theme.colors.textColor}
-                            _hover={{ bg: theme.colors.primaryLighter, color: theme.colors.primary }}
-                            fontSize={theme.fontSizes.xs}
-                          >
-                            Add to Calendar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            color={theme.colors.textColor}
-                            _hover={{ bg: theme.colors.primaryLighter, color: theme.colors.primary }}
-                            fontSize={theme.fontSizes.xs}
-                          >
-                            Reply
-                          </Button>
-                        </Flex>
-                      </Box>
+                <Box flex={1} position="relative" minH={{ base: "auto", md: "100vh" }}>
+                    {/* Header Section */}
+                    <Box
+                        bgGradient="linear-gradient(180deg, #81be41 0%, rgba(129, 190, 65, 0) 100%)"
+                        w="100%"
+                        px={{ base: "16px", md: "24px" }}
+                        py={{ base: "16px", md: "20px" }}
+                    >
+                        <Header mb="16px" flexDirection={{ base: "column", md: "row" }} />
                     </Box>
 
-                    <Tabs variant="line" mb={{ base: "28px", md: "32px" }} colorScheme="green">
-                      <TabList mb="20px">
-                        <Tab
-                          fontWeight="600"
-                          _selected={{
-                            color: theme.colors.primary,
-                            borderColor: theme.colors.primary,
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                          }}
-                          mx="2px"
-                          px="28px"
-                          py="14px"
-                          borderRadius="4px 4px 0 0"
-                          _hover={{ bg: theme.colors.primaryLighter }}
-                          transition={theme.transitions.normal}
-                          fontSize={theme.fontSizes.sm}
-                          color={theme.colors.textColor}
-                        >
-                          My Department
-                        </Tab>
-                        <Tab
-                          fontWeight="600"
-                          _selected={{
-                            color: theme.colors.primary,
-                            borderColor: theme.colors.primary,
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                          }}
-                          mx="2px"
-                          px="28px"
-                          py="14px"
-                          borderRadius="4px 4px 0 0"
-                          _hover={{ bg: theme.colors.primaryLighter }}
-                          transition={theme.transitions.normal}
-                          fontSize={theme.fontSizes.sm}
-                          color={theme.colors.textColor}
-                        >
-                          All Members
-                        </Tab>
-                      </TabList>
-                      <TabPanels>
-                        {/* My Department Tab */}
-                        <TabPanel p="0">
-                          <Text
-                            fontSize={theme.fontSizes.md}
-                            fontWeight="600"
-                            mb="20px"
-                            textTransform="capitalize"
-                            color={theme.colors.textColor}
-                          >
-                            {userDepartment.charAt(0) + userDepartment.slice(1).toLowerCase()} Department Members
-                          </Text>
-                          {filteredMembers.length > 0 ? (
-                            <Flex flexWrap="wrap" gap="20px">
-                              {filteredMembers.map((member) => (
-                                <Box
-                                  key={member.id}
-                                  w={{ base: "100%", sm: "calc(50% - 10px)", md: "calc(33.33% - 14px)" }}
-                                  borderRadius={theme.borderRadius.md}
-                                  border="1px solid"
-                                  borderColor={theme.colors.borderColor}
-                                  overflow="hidden"
-                                  transition={theme.transitions.normal}
-                                  _hover={{
-                                    boxShadow: theme.shadows.md,
-                                    borderColor: theme.colors.primary,
-                                    transform: "translateY(-4px)",
-                                  }}
-                                  cursor="pointer"
-                                  onClick={() => handleMemberClick(member)}
-                                  bg="white"
-                                  position="relative"
-                                >
-                                  {member.isOnline && (
-                                    <Box
-                                      position="absolute"
-                                      top="12px"
-                                      right="12px"
-                                      w="10px"
-                                      h="10px"
-                                      borderRadius="full"
-                                      bg={theme.colors.primary}
-                                      zIndex="1"
-                                      boxShadow="0 0 0 2px white"
-                                    />
-                                  )}
-                                  <Flex
-                                    p="20px"
-                                    alignItems="center"
-                                    borderBottom="1px solid"
-                                    borderColor={theme.colors.borderColor}
-                                  >
-                                    <Box position="relative">
-                                      <Avatar
-                                        src={member.avatar}
-                                        name={member.name}
-                                        size="lg"
-                                        border="2px solid white"
-                                        boxShadow={theme.shadows.sm}
-                                      />
-                                      {member.isOnline && (
-                                        <Box
-                                          position="absolute"
-                                          bottom="0"
-                                          right="0"
-                                          w="12px"
-                                          h="12px"
-                                          borderRadius="full"
-                                          bg={theme.colors.primary}
-                                          border="2px solid white"
-                                        />
-                                      )}
-                                    </Box>
-                                    <Box ml="16px">
-                                      <Text
-                                        fontWeight="600"
-                                        fontSize={theme.fontSizes.md}
-                                        color={theme.colors.textColor}
-                                      >
-                                        {member.name}
-                                      </Text>
-                                      <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        {member.role}
-                                      </Text>
-                                    </Box>
-                                  </Flex>
-                                  <Box p="20px">
-                                    <Flex alignItems="center" mb="10px">
-                                      <Mail size={18} color={theme.colors.textColor} />
-                                      <Text ml="10px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        {member.email}
-                                      </Text>
-                                    </Flex>
-                                    <Flex alignItems="center" mb="10px">
-                                      <Briefcase size={18} color={theme.colors.textColor} />
-                                      <Text ml="10px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        {member.department.charAt(0) + member.department.slice(1).toLowerCase()}
-                                      </Text>
-                                    </Flex>
-                                    <Flex alignItems="center">
-                                      <Box as={Calendar} size={18} color={theme.colors.textColor} />
-                                      <Text ml="10px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        Joined {member.dateAdded}
-                                      </Text>
-                                    </Flex>
-                                  </Box>
-                                  <Box
-                                    p="14px 20px"
-                                    bg={theme.colors.primaryLighter}
-                                    borderTop="1px solid"
-                                    borderColor={theme.colors.borderColor}
-                                  >
-                                    <Flex justifyContent="space-between" alignItems="center">
-                                      <Text
-                                        fontSize={theme.fontSizes.sm}
-                                        fontWeight="500"
-                                        color={theme.colors.textColor}
-                                      >
-                                        {member.projects.length} Projects • {member.tasks.length} Tasks
-                                      </Text>
-                                      <Badge
-                                        colorScheme={member.isOnline ? "green" : "gray"}
-                                        bg={member.isOnline ? theme.colors.primary : "gray.200"}
-                                        color={member.isOnline ? "white" : "gray.700"}
-                                        fontSize={theme.fontSizes.xs}
-                                        fontWeight="500"
-                                        px="8px"
-                                        py="4px"
-                                        borderRadius="full"
-                                      >
-                                        {member.isOnline ? "Online" : "Offline"}
-                                      </Badge>
-                                    </Flex>
-                                  </Box>
-                                </Box>
-                              ))}
-                            </Flex>
-                          ) : (
-                            <Flex
-                              direction="column"
-                              alignItems="center"
-                              justifyContent="center"
-                              py="50px"
-                              bg={theme.colors.primaryLighter}
-                              borderRadius={theme.borderRadius.md}
-                              border="1px dashed"
-                              borderColor={theme.colors.primary}
-                            >
-                              <Users size={56} color={theme.colors.primary} />
-                              <Text
-                                mt="20px"
-                                fontSize={theme.fontSizes.md}
-                                fontWeight="600"
-                                color={theme.colors.textColor}
-                              >
-                                No team members found
-                              </Text>
-                              <Text
-                                fontSize={theme.fontSizes.sm}
-                                color={theme.colors.textColor}
-                                mt="6px"
-                                textAlign="center"
-                                maxW="400px"
-                                lineHeight="1.6"
-                              >
-                                {searchQuery ? "Try a different search term" : "Invite team members to get started"}
-                              </Text>
-                              <Button
-                                mt="20px"
-                                onClick={onInviteOpen}
-                                size="md"
-                                leftIcon={<UserPlus size={18} />}
-                                bg={theme.colors.primary}
-                                color="white"
-                                _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-                                boxShadow={theme.shadows.sm}
-                                transition={theme.transitions.normal}
-                                fontSize={theme.fontSizes.sm}
-                                px="20px"
-                                py="10px"
-                                borderRadius={theme.borderRadius.md}
-                              >
-                                Invite team member
-                              </Button>
-                            </Flex>
-                          )}
-                        </TabPanel>
-
-                        {/* All Members Tab */}
-                        <TabPanel p="0">
-                          <Text fontSize={theme.fontSizes.md} fontWeight="600" mb="20px" color={theme.colors.textColor}>
-                            All Team Members
-                          </Text>
-                          {teamMembers.length > 0 ? (
-                            <Flex flexWrap="wrap" gap="20px">
-                              {teamMembers.map((member) => (
-                                <Box
-                                  key={member.id}
-                                  w={{ base: "100%", sm: "calc(50% - 10px)", md: "calc(33.33% - 14px)" }}
-                                  borderRadius={theme.borderRadius.md}
-                                  border="1px solid"
-                                  borderColor={theme.colors.borderColor}
-                                  overflow="hidden"
-                                  transition={theme.transitions.normal}
-                                  _hover={{
-                                    boxShadow: theme.shadows.md,
-                                    borderColor: theme.colors.primary,
-                                    transform: "translateY(-4px)",
-                                  }}
-                                  cursor="pointer"
-                                  onClick={() => handleMemberClick(member)}
-                                  bg="white"
-                                  position="relative"
-                                >
-                                  {member.isOnline && (
-                                    <Box
-                                      position="absolute"
-                                      top="12px"
-                                      right="12px"
-                                      w="10px"
-                                      h="10px"
-                                      borderRadius="full"
-                                      bg={theme.colors.primary}
-                                      zIndex="1"
-                                      boxShadow="0 0 0 2px white"
-                                    />
-                                  )}
-                                  <Flex
-                                    p="20px"
-                                    alignItems="center"
-                                    borderBottom="1px solid"
-                                    borderColor={theme.colors.borderColor}
-                                  >
-                                    <Box position="relative">
-                                      <Avatar
-                                        src={member.avatar}
-                                        name={member.name}
-                                        size="lg"
-                                        border="2px solid white"
-                                        boxShadow={theme.shadows.sm}
-                                      />
-                                      {member.isOnline && (
-                                        <Box
-                                          position="absolute"
-                                          bottom="0"
-                                          right="0"
-                                          w="12px"
-                                          h="12px"
-                                          borderRadius="full"
-                                          bg={theme.colors.primary}
-                                          border="2px solid white"
-                                        />
-                                      )}
-                                    </Box>
-                                    <Box ml="16px">
-                                      <Text
-                                        fontWeight="600"
-                                        fontSize={theme.fontSizes.md}
-                                        color={theme.colors.textColor}
-                                      >
-                                        {member.name}
-                                      </Text>
-                                      <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        {member.role}
-                                      </Text>
-                                    </Box>
-                                  </Flex>
-                                  <Box p="20px">
-                                    <Flex alignItems="center" mb="10px">
-                                      <Mail size={18} color={theme.colors.textColor} />
-                                      <Text ml="10px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        {member.email}
-                                      </Text>
-                                    </Flex>
-                                    <Flex alignItems="center" mb="10px">
-                                      <Briefcase size={18} color={theme.colors.textColor} />
-                                      <Text ml="10px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        {member.department.charAt(0) + member.department.slice(1).toLowerCase()}
-                                      </Text>
-                                    </Flex>
-                                    <Flex alignItems="center">
-                                      <Box as={Calendar} size={18} color={theme.colors.textColor} />
-                                      <Text ml="10px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                        Joined {member.dateAdded}
-                                      </Text>
-                                    </Flex>
-                                  </Box>
-                                  <Box
-                                    p="14px 20px"
-                                    bg={theme.colors.primaryLighter}
-                                    borderTop="1px solid"
-                                    borderColor={theme.colors.borderColor}
-                                  >
-                                    <Flex justifyContent="space-between" alignItems="center">
-                                      <Text
-                                        fontSize={theme.fontSizes.sm}
-                                        fontWeight="500"
-                                        color={theme.colors.textColor}
-                                      >
-                                        {member.projects.length} Projects • {member.tasks.length} Tasks
-                                      </Text>
-                                      <Badge
-                                        colorScheme={member.isOnline ? "green" : "gray"}
-                                        bg={member.isOnline ? theme.colors.primary : "gray.200"}
-                                        color={member.isOnline ? "white" : "gray.700"}
-                                        fontSize={theme.fontSizes.xs}
-                                        fontWeight="500"
-                                        px="8px"
-                                        py="4px"
-                                        borderRadius="full"
-                                      >
-                                        {member.isOnline ? "Online" : "Offline"}
-                                      </Badge>
-                                    </Flex>
-                                  </Box>
-                                </Box>
-                              ))}
-                            </Flex>
-                          ) : (
-                            <Flex
-                              direction="column"
-                              alignItems="center"
-                              justifyContent="center"
-                              py="50px"
-                              bg={theme.colors.primaryLighter}
-                              borderRadius={theme.borderRadius.md}
-                              border="1px dashed"
-                              borderColor={theme.colors.primary}
-                            >
-                              <Users size={56} color={theme.colors.primary} />
-                              <Text
-                                mt="20px"
-                                fontSize={theme.fontSizes.md}
-                                fontWeight="600"
-                                color={theme.colors.textColor}
-                              >
-                                No team members found
-                              </Text>
-                              <Text
-                                fontSize={theme.fontSizes.sm}
-                                color={theme.colors.textColor}
-                                mt="6px"
-                                textAlign="center"
-                                maxW="400px"
-                                lineHeight="1.6"
-                              >
-                                {searchQuery ? "Try a different search term" : "Invite team members to get started"}
-                              </Text>
-                              <Button
-                                mt="20px"
-                                onClick={onInviteOpen}
-                                size="md"
-                                leftIcon={<UserPlus size={18} />}
-                                bg={theme.colors.primary}
-                                color="white"
-                                _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-                                boxShadow={theme.shadows.sm}
-                                transition={theme.transitions.normal}
-                                fontSize={theme.fontSizes.sm}
-                                px="20px"
-                                py="10px"
-                                borderRadius={theme.borderRadius.md}
-                              >
-                                Invite team member
-                              </Button>
-                            </Flex>
-                          )}
-                        </TabPanel>
-                      </TabPanels>
-                    </Tabs>
-                  </>
-                ) : (
-                  <>
-                    {/* Departments View */}
-                    <Text fontSize={theme.fontSizes.lg} fontWeight="600" mb="20px" color={theme.colors.textColor}>
-                      Departments
-                    </Text>
-                    <Flex flexWrap="wrap" gap="20px">
-                      {departments.map((department) => (
+                    {/* Main Content Area */}
+                    <Flex flexDirection={{ base: "column", md: "row" }}>
+                        {/* Main Content */}
                         <Box
-                          key={department.id}
-                          w={{ base: "100%", sm: "calc(50% - 10px)", md: "calc(33.33% - 14px)" }}
-                          borderRadius={theme.borderRadius.md}
-                          border="1px solid"
-                          borderColor={theme.colors.borderColor}
-                          overflow="hidden"
-                          transition={theme.transitions.normal}
-                          _hover={{
-                            boxShadow: theme.shadows.md,
-                            borderColor: theme.colors.primary,
-                            transform: "translateY(-4px)",
-                          }}
-                          cursor="pointer"
-                          onClick={() => handleDepartmentClick(department)}
-                          bg="white"
-                          position="relative"
+                            w={{ base: "100%", md: mainContentWidth }}
+                            borderColor="gray.200"
+                            borderRightWidth={{ md: "1px" }}
+                            borderStyle="solid"
+                            bg="white.a700"
+                            order={{ base: 2, md: 1 }}
                         >
-                          <Box
-                            p="20px"
-                            borderBottom="1px solid"
-                            borderColor={theme.colors.borderColor}
-                            borderLeft={`4px solid ${theme.colors.primary}`}
-                          >
-                            <Text fontWeight="600" fontSize={theme.fontSizes.md} color={theme.colors.textColor}>
-                              {department.name.charAt(0) + department.name.slice(1).toLowerCase()}
-                            </Text>
-                            <Text
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              mt="6px"
-                              lineHeight="1.5"
+                            {/* Page Title and Filters */}
+                            <Flex
+                                px={{ base: "16px", md: "24px" }}
+                                py={{ base: "20px", md: "20px" }}
+                                justifyContent="space-between"
+                                alignItems={{ base: "flex-start", md: "center" }}
+                                flexDirection={{ base: "column", md: "row" }}
+                                gap={{ base: "16px", md: "0" }}
                             >
-                              {department.description}
-                            </Text>
-                          </Box>
-                          <Box p="20px">
-                            <Flex justifyContent="space-between" mb="12px">
-                              <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                Team Lead:
-                              </Text>
-                              <Text fontSize={theme.fontSizes.sm} fontWeight="500" color={theme.colors.textColor}>
-                                {department.lead}
-                              </Text>
-                            </Flex>
-                            <Flex justifyContent="space-between" mb="12px">
-                              <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                Members:
-                              </Text>
-                              <Text fontSize={theme.fontSizes.sm} fontWeight="500" color={theme.colors.textColor}>
-                                {department.memberCount}
-                              </Text>
-                            </Flex>
-                            <Flex justifyContent="space-between" mb="12px">
-                              <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                Projects:
-                              </Text>
-                              <Text fontSize={theme.fontSizes.sm} fontWeight="500" color={theme.colors.textColor}>
-                                {department.projectCount}
-                              </Text>
-                            </Flex>
-                            <Flex justifyContent="space-between">
-                              <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                                Tasks:
-                              </Text>
-                              <Text fontSize={theme.fontSizes.sm} fontWeight="500" color={theme.colors.textColor}>
-                                {department.taskCount}
-                              </Text>
-                            </Flex>
-                          </Box>
-                          <Box
-                            p="16px 20px"
-                            bg={theme.colors.primaryLighter}
-                            borderTop="1px solid"
-                            borderColor={theme.colors.borderColor}
-                          >
-                            <Flex justifyContent="space-between" alignItems="center">
-                              <AvatarGroup size="sm" max={3}>
-                                {teamMembers
-                                  .filter((member) => member.department === department.name)
-                                  .map((member) => (
-                                    <Avatar
-                                      key={member.id}
-                                      name={member.name}
-                                      src={member.avatar}
-                                      border="2px solid white"
+                                <Flex flexDirection="column" alignItems="flex-start" mt="0">
+                                    <Heading
+                                        size="heading6xl"
+                                        as="h1"
+                                        letterSpacing="1.50px"
+                                        fontSize={{ base: "24px", md: "28px" }}
+                                        fontWeight={600}
+                                    >
+                                        View and Generate Reports
+                                    </Heading>
+                                    <Heading
+                                        size="text5xl"
+                                        as="h6"
+                                        mt="2px"
+                                        fontSize={{ base: "16px", md: "18px" }}
+                                        fontWeight={500}
+                                        color="gray.700"
+                                    >
+                                        Reports
+                                    </Heading>
+                                </Flex>
+
+                                <Flex
+                                    gap={{ base: "16px", md: "20px" }}
+                                    w={{ base: "100%", md: "auto" }}
+                                    justifyContent={{ base: "space-between", md: "flex-end" }}
+                                    alignItems="center"
+                                >
+                                    <Button
+                                        onClick={onGenerateReportOpen}
+                                        bg="#81BE41"
+                                        color="white"
+                                        _hover={{ bg: "#6ca32e" }}
+                                        fontSize={{ base: "14px", md: "16px" }}
+                                        fontWeight={500}
+                                        h={{ base: "36px", md: "40px" }}
+                                        px={{ base: "12px", md: "16px" }}
+                                        borderRadius="8px"
+                                        leftIcon={<FileText size={16} />}
+                                    >
+                                        Generate Report
+                                    </Button>
+
+                                    <SelectBox
+                                        shape="round"
+                                        indicator={<Image src="images/img_arrowdown_black_900_01.svg" alt="Arrow Down" w="24px" h="24px" />}
+                                        getOptionLabel={(e) => (
+                                            <>
+                                                <Box display="flex" alignItems="center">
+                                                    <Image src="images/img_uilcalender_gray_500.svg" alt="Uil:calender" w="20px" h="20px" />
+                                                    <span>{e.label}</span>
+                                                </Box>
+                                            </>
+                                        )}
+                                        name="uilcalender"
+                                        placeholder={`This Month`}
+                                        options={dropDownOptions}
+                                        style={{
+                                            fontWeight: 500,
+                                            fontSize: "16px",
+                                            gap: "6px",
+                                            borderColor: "gray.500",
+                                            borderWidth: "1px",
+                                            borderStyle: "solid",
+                                            w: { base: "48%", md: "120px" },
+                                        }}
+                                        onChange={(value) => handleDateRangeChange(value)}
                                     />
-                                  ))}
-                              </AvatarGroup>
-                              <Button
-                                size="sm"
-                                colorScheme="green"
-                                variant="outline"
-                                bg="white"
-                                color={theme.colors.primary}
-                                borderColor={theme.colors.primary}
-                                _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                                fontSize={theme.fontSizes.xs}
-                                px="16px"
-                                py="8px"
-                                borderRadius={theme.borderRadius.md}
-                                transition={theme.transitions.normal}
-                                boxShadow={theme.shadows.sm}
-                              >
-                                View Details
-                              </Button>
+                                    <Box position="relative" w={{ base: "48%", md: "120px" }} data-filter-dropdown>
+                                        <Button
+                                            onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                                            display="flex"
+                                            alignItems="center"
+                                            justifyContent="space-between"
+                                            w="100%"
+                                            h="44px"
+                                            px="16px"
+                                            border="1px solid"
+                                            borderColor="gray.500"
+                                            borderRadius="8px"
+                                            bg="white"
+                                            _hover={{ bg: "gray.50" }}
+                                        >
+                                            <Flex alignItems="center" gap="8px">
+                                                <Filter size={16} />
+                                                <Text fontWeight={500} fontSize="16px">
+                                                    Filter
+                                                </Text>
+                                            </Flex>
+                                            <Box as={ChevronDown} size={16} />
+                                        </Button>
+
+                                        {isFilterDropdownOpen && (
+                                            <Box
+                                                position="absolute"
+                                                top="48px"
+                                                left="0"
+                                                right="0"
+                                                zIndex="10"
+                                                bg="white"
+                                                boxShadow="0 4px 12px rgba(0, 0, 0, 0.15)"
+                                                borderRadius="10px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                maxH="350px"
+                                                overflowY="auto"
+                                                w="280px"
+                                            >
+                                                <Box p="12px 16px" borderBottom="1px solid" borderColor="gray.200">
+                                                    <Text fontWeight="600" fontSize="14px">
+                                                        Filter by Department
+                                                    </Text>
+                                                </Box>
+                                                <Box p="10px">
+                                                    <Flex
+                                                        align="center"
+                                                        p="8px 12px"
+                                                        cursor="pointer"
+                                                        borderRadius="6px"
+                                                        _hover={{ bg: "gray.50" }}
+                                                        onClick={() => handleDepartmentSelection("ALL DEPARTMENTS")}
+                                                    >
+                                                        <CustomCheckbox
+                                                            isChecked={selectedDepartments.length === 0}
+                                                            onChange={() => handleDepartmentSelection("ALL DEPARTMENTS")}
+                                                        />
+                                                        <Text fontSize="14px" fontWeight="500">
+                                                            All Departments
+                                                        </Text>
+                                                    </Flex>
+                                                    {departments.map((department) => (
+                                                        <Flex
+                                                            key={department.id}
+                                                            align="center"
+                                                            p="8px 12px"
+                                                            cursor="pointer"
+                                                            borderRadius="6px"
+                                                            _hover={{ bg: "gray.50" }}
+                                                            onClick={() => handleDepartmentSelection(department.name)}
+                                                        >
+                                                            <CustomCheckbox
+                                                                isChecked={selectedDepartments.includes(department.name)}
+                                                                onChange={() => handleDepartmentSelection(department.name)}
+                                                            />
+                                                            <Text fontSize="14px" fontWeight="500">
+                                                                {department.name.charAt(0) + department.name.slice(1).toLowerCase()}
+                                                            </Text>
+                                                        </Flex>
+                                                    ))}
+                                                </Box>
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Flex>
                             </Flex>
-                          </Box>
+
+                            {/* Search Bar */}
+                            <Box px={{ base: "16px", md: "24px" }} pb="16px">
+                                <InputGroup>
+                                    <InputLeftElement pointerEvents="none">
+                                        <Search color="gray.500" size={20} />
+                                    </InputLeftElement>
+                                    <Input
+                                        placeholder="Search reports..."
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        borderRadius="8px"
+                                        borderColor="gray.300"
+                                        _focus={{ borderColor: "#81BE41", boxShadow: "0 0 0 1px #81BE41" }}
+                                    />
+                                </InputGroup>
+                            </Box>
+
+                            {/* Reports Content */}
+                            <Box
+                                borderColor="gray.300_01"
+                                borderTopWidth="1px"
+                                borderStyle="solid"
+                                bg="white.a700"
+                                px={{ base: "16px", md: "24px" }}
+                                py={{ base: "20px", md: "24px" }}
+                            >
+                                {generatedReports.length > 0 ? (
+                                    <>
+                                        {/* Department Overview Dashboard */}
+                                        <Box mb="32px">
+                                            <Heading size="md" mb="16px">
+                                                Department Dashboard
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(4, 1fr)" }} gap={6}>
+                                                <GridItem>
+                                                    <Stat
+                                                        p="16px"
+                                                        borderRadius="10px"
+                                                        border="1px solid"
+                                                        borderColor="gray.200"
+                                                        bg="white"
+                                                        boxShadow="sm"
+                                                    >
+                                                        <StatLabel fontSize="14px" color="gray.600">
+                                                            Total Projects
+                                                        </StatLabel>
+                                                        <StatNumber fontSize="24px" fontWeight="bold">
+                                                            {filteredProjects.length}
+                                                        </StatNumber>
+                                                        <StatHelpText mb="0">
+                                                            <Flex alignItems="center">
+                                                                <ArrowUpRight size={14} color="#38A169" />
+                                                                <Text ml="4px" color="green.500">
+                                                                    +5% from last month
+                                                                </Text>
+                                                            </Flex>
+                                                        </StatHelpText>
+                                                    </Stat>
+                                                </GridItem>
+                                                <GridItem>
+                                                    <Stat
+                                                        p="16px"
+                                                        borderRadius="10px"
+                                                        border="1px solid"
+                                                        borderColor="gray.200"
+                                                        bg="white"
+                                                        boxShadow="sm"
+                                                    >
+                                                        <StatLabel fontSize="14px" color="gray.600">
+                                                            Total Tasks
+                                                        </StatLabel>
+                                                        <StatNumber fontSize="24px" fontWeight="bold">
+                                                            {filteredTasks.length}
+                                                        </StatNumber>
+                                                        <StatHelpText mb="0">
+                                                            <Flex alignItems="center">
+                                                                <ArrowUpRight size={14} color="#38A169" />
+                                                                <Text ml="4px" color="green.500">
+                                                                    +12% from last month
+                                                                </Text>
+                                                            </Flex>
+                                                        </StatHelpText>
+                                                    </Stat>
+                                                </GridItem>
+                                                <GridItem>
+                                                    <Stat
+                                                        p="16px"
+                                                        borderRadius="10px"
+                                                        border="1px solid"
+                                                        borderColor="gray.200"
+                                                        bg="white"
+                                                        boxShadow="sm"
+                                                    >
+                                                        <StatLabel fontSize="14px" color="gray.600">
+                                                            Completion Rate
+                                                        </StatLabel>
+                                                        <StatNumber fontSize="24px" fontWeight="bold">
+                                                            {filteredTasks.length > 0
+                                                                ? Math.round(
+                                                                    (filteredTasks.filter((task) => task.status === "finished").length /
+                                                                        filteredTasks.length) *
+                                                                    100
+                                                                )
+                                                                : 0}
+                                                            %
+                                                        </StatNumber>
+                                                        <StatHelpText mb="0">
+                                                            <Flex alignItems="center">
+                                                                <ArrowUpRight size={14} color="#38A169" />
+                                                                <Text ml="4px" color="green.500">
+                                                                    +8% from last month
+                                                                </Text>
+                                                            </Flex>
+                                                        </StatHelpText>
+                                                    </Stat>
+                                                </GridItem>
+                                                <GridItem>
+                                                    <Stat
+                                                        p="16px"
+                                                        borderRadius="10px"
+                                                        border="1px solid"
+                                                        borderColor="gray.200"
+                                                        bg="white"
+                                                        boxShadow="sm"
+                                                    >
+                                                        <StatLabel fontSize="14px" color="gray.600">
+                                                            Team Members
+                                                        </StatLabel>
+                                                        <StatNumber fontSize="24px" fontWeight="bold">
+                                                            {teamMembers.length}
+                                                        </StatNumber>
+                                                        <StatHelpText mb="0">
+                                                            <Flex alignItems="center">
+                                                                <ArrowUpRight size={14} color="#38A169" />
+                                                                <Text ml="4px" color="green.500">
+                                                                    +2 new this month
+                                                                </Text>
+                                                            </Flex>
+                                                        </StatHelpText>
+                                                    </Stat>
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Project Status Chart */}
+                                        <Box mb="32px">
+                                            <Heading size="md" mb="16px">
+                                                Project Status
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(2, 1fr)" }} gap={6}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="10px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                    boxShadow="sm"
+                                                >
+                                                    <Chart
+                                                        width="100%"
+                                                        height="300px"
+                                                        chartType="PieChart"
+                                                        loader={<div>Loading Chart...</div>}
+                                                        data={[
+                                                            ["Status", "Count"],
+                                                            [
+                                                                "To Do",
+                                                                filteredProjects.filter((project) => project.status === "todo").length,
+                                                            ],
+                                                            [
+                                                                "In Progress",
+                                                                filteredProjects.filter((project) => project.status === "inprogress").length,
+                                                            ],
+                                                            [
+                                                                "Finished",
+                                                                filteredProjects.filter((project) => project.status === "finished").length,
+                                                            ],
+                                                        ]}
+                                                        options={{
+                                                            title: "Project Status Distribution",
+                                                            pieHole: 0.4,
+                                                            colors: ["#B4AEAE", "#FFA500", "#81BE41"],
+                                                            legend: { position: "bottom" },
+                                                            chartArea: { width: "90%", height: "80%" },
+                                                        }}
+                                                    />
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="10px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                    boxShadow="sm"
+                                                >
+                                                    <Chart
+                                                        width="100%"
+                                                        height="300px"
+                                                        chartType="ColumnChart"
+                                                        loader={<div>Loading Chart...</div>}
+                                                        data={[
+                                                            ["Project", "Completion"],
+                                                            ...filteredProjects.slice(0, 5).map((project) => [
+                                                                project.buttonText,
+                                                                project.tasks && project.tasks.length > 0
+                                                                    ? Math.round(
+                                                                        (project.tasks.filter((task) => task.completed).length / project.tasks.length) * 100
+                                                                    )
+                                                                    : 0,
+                                                            ]),
+                                                        ]}
+                                                        options={{
+                                                            title: "Project Completion Percentage",
+                                                            chartArea: { width: "80%", height: "70%" },
+                                                            hAxis: { title: "Project" },
+                                                            vAxis: { title: "Completion (%)", minValue: 0, maxValue: 100 },
+                                                            legend: { position: "none" },
+                                                            colors: ["#81BE41"],
+                                                        }}
+                                                    />
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Recent Reports */}
+                                        <Box mb="32px">
+                                            <Heading size="md" mb="16px">
+                                                Recent Reports
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={6}>
+                                                {generatedReports.slice(0, 6).map((report) => (
+                                                    <GridItem key={report.id}>
+                                                        <Box
+                                                            p="16px"
+                                                            borderRadius="10px"
+                                                            border="1px solid"
+                                                            borderColor="gray.200"
+                                                            bg="white"
+                                                            boxShadow="sm"
+                                                            cursor="pointer"
+                                                            onClick={() => handleViewReportDetails(report)}
+                                                            _hover={{ boxShadow: "md", borderColor: "gray.300" }}
+                                                            transition="all 0.2s"
+                                                        >
+                                                            <Flex alignItems="center" mb="12px">
+                                                                {getReportIcon(report.type)}
+                                                                <Box ml="12px">
+                                                                    <Text fontWeight="600" fontSize="16px" noOfLines={1}>
+                                                                        {report.name}
+                                                                    </Text>
+                                                                    <Text fontSize="14px" color="gray.600">
+                                                                        {report.dateGenerated}
+                                                                    </Text>
+                                                                </Box>
+                                                            </Flex>
+                                                            <Flex justifyContent="space-between" alignItems="center">
+                                                                <Badge
+                                                                    colorScheme={
+                                                                        report.type === "overview"
+                                                                            ? "blue"
+                                                                            : report.type === "projects"
+                                                                                ? "green"
+                                                                                : report.type === "tasks"
+                                                                                    ? "orange"
+                                                                                    : report.type === "team"
+                                                                                        ? "purple"
+                                                                                        : "teal"
+                                                                    }
+                                                                >
+                                                                    {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
+                                                                </Badge>
+                                                                <Flex alignItems="center">
+                                                                    {getReportFormatIcon(report.format)}
+                                                                    <Text ml="4px" fontSize="14px" color="gray.600">
+                                                                        {report.format.toUpperCase()}
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Flex>
+                                                        </Box>
+                                                    </GridItem>
+                                                ))}
+                                            </Grid>
+                                        </Box>
+
+                                        {/* All Reports */}
+                                        <Box>
+                                            <Heading size="md" mb="16px">
+                                                All Reports
+                                            </Heading>
+                                            <Table variant="simple" borderRadius="8px" overflow="hidden" boxShadow="sm">
+                                                <Thead bg="gray.50">
+                                                    <Tr>
+                                                        <Th>Report Name</Th>
+                                                        <Th>Type</Th>
+                                                        <Th>Date Generated</Th>
+                                                        <Th>Format</Th>
+                                                        <Th>Size</Th>
+                                                        <Th>Actions</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {generatedReports.map((report) => (
+                                                        <Tr key={report.id} _hover={{ bg: "gray.50" }} cursor="pointer">
+                                                            <Td onClick={() => handleViewReportDetails(report)}>
+                                                                <Flex alignItems="center">
+                                                                    {getReportIcon(report.type)}
+                                                                    <Text ml="8px" fontWeight="500">
+                                                                        {report.name}
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Td>
+                                                            <Td>
+                                                                <Badge
+                                                                    colorScheme={
+                                                                        report.type === "overview"
+                                                                            ? "blue"
+                                                                            : report.type === "projects"
+                                                                                ? "green"
+                                                                                : report.type === "tasks"
+                                                                                    ? "orange"
+                                                                                    : report.type === "team"
+                                                                                        ? "purple"
+                                                                                        : "teal"
+                                                                    }
+                                                                >
+                                                                    {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
+                                                                </Badge>
+                                                            </Td>
+                                                            <Td>{report.dateGenerated}</Td>
+                                                            <Td>
+                                                                <Flex alignItems="center">
+                                                                    {getReportFormatIcon(report.format)}
+                                                                    <Text ml="4px">{report.format.toUpperCase()}</Text>
+                                                                </Flex>
+                                                            </Td>
+                                                            <Td>{report.size}</Td>
+                                                            <Td>
+                                                                <Flex>
+                                                                    <IconButton
+                                                                        aria-label="Download report"
+                                                                        icon={<Download size={16} />}
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            handleReportDownload(report)
+                                                                        }}
+                                                                        mr="2"
+                                                                    />
+                                                                    <Menu>
+                                                                        <MenuButton
+                                                                            as={IconButton}
+                                                                            aria-label="More options"
+                                                                            icon={<MoreVertical size={16} />}
+                                                                            size="sm"
+                                                                            variant="ghost"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        />
+                                                                        <MenuList>
+                                                                            <MenuItem
+                                                                                icon={<Share2 size={16} />}
+                                                                                onClick={() => handleReportShare(report)}
+                                                                            >
+                                                                                Share
+                                                                            </MenuItem>
+                                                                            <MenuItem
+                                                                                icon={<Printer size={16} />}
+                                                                                onClick={() => handleReportPrint(report)}
+                                                                            >
+                                                                                Print
+                                                                            </MenuItem>
+                                                                            <MenuItem
+                                                                                icon={<Mail size={16} />}
+                                                                                onClick={() => handleReportEmail(report)}
+                                                                            >
+                                                                                Email
+                                                                            </MenuItem>
+                                                                            <MenuItem
+                                                                                icon={<Trash2 size={16} color="red" />}
+                                                                                color="red.500"
+                                                                                onClick={() => handleReportDelete(report)}
+                                                                            >
+                                                                                Delete
+                                                                            </MenuItem>
+                                                                        </MenuList>
+                                                                    </Menu>
+                                                                </Flex>
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+                                    </>
+                                ) : (
+                                    <Flex
+                                        flexDirection="column"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        py={{ base: "30px", md: "40px" }}
+                                    >
+                                        <Heading
+                                            size="heading5xl"
+                                            as="h3"
+                                            fontWeight={700}
+                                            fontSize={{ base: "24px", md: "28px" }}
+                                            mb={{ base: "30px", md: "40px" }}
+                                        >
+                                            NO REPORTS FOUND!
+                                        </Heading>
+
+                                        <Image
+                                            src="images/img_group_172.svg"
+                                            alt="Empty reports illustration"
+                                            h={{ base: "160px", md: "220px" }}
+                                            w={{ base: "60%", md: "34%" }}
+                                            fit="contain"
+                                            mb={{ base: "24px", md: "32px" }}
+                                        />
+
+                                        <Flex
+                                            flexDirection="column"
+                                            alignItems="center"
+                                            maxW={{ base: "100%", md: "60%" }}
+                                            textAlign="center"
+                                            px={{ base: "16px", md: "0" }}
+                                        >
+                                            <Text
+                                                fontSize={{ base: "16px", md: "18px" }}
+                                                fontWeight={500}
+                                                lineHeight={{ base: "24px", md: "30px" }}
+                                                color="gray.700"
+                                            >
+                                                No reports have been generated yet.
+                                            </Text>
+                                            <Text
+                                                fontSize={{ base: "16px", md: "18px" }}
+                                                fontWeight={400}
+                                                lineHeight={{ base: "24px", md: "30px" }}
+                                                color="#000000"
+                                                mt="4px"
+                                            >
+                                                Generate a report to view insights about your projects, tasks, and team.
+                                            </Text>
+                                            <Button
+                                                onClick={onGenerateReportOpen}
+                                                mt="24px"
+                                                bg="#81BE41"
+                                                color="white"
+                                                _hover={{ bg: "#6ca32e" }}
+                                                leftIcon={<FileText size={16} />}
+                                            >
+                                                Generate Report
+                                            </Button>
+                                        </Flex>
+                                    </Flex>
+                                )}
+                            </Box>
                         </Box>
-                      ))}
-                    </Flex>
-                  </>
-                )}
-              </Box>
-            </Box>
 
-            {/* Right Sidebar */}
-            <RightSidebar order={{ base: 1, md: 2 }} />
-          </Flex>
+                        {/* Right Sidebar */}
+                        <RightSidebar order={{ base: 1, md: 2 }} />
+                    </Flex>
+                </Box>
+            </Flex>
+
+            {/* Generate Report Modal */}
+            <Modal isOpen={isGenerateReportOpen} onClose={onGenerateReportClose} isCentered>
+                <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
+                <ModalContent bg="white" borderRadius="10px" mx={{ base: "16px", md: "0" }}>
+                    <ModalHeader borderBottom="1px solid" borderColor="gray.200" py="16px">
+                        Generate New Report
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody pb={6} pt={4}>
+                        <FormControl mb={4}>
+                            <FormLabel fontWeight="500">Report Type</FormLabel>
+                            <Select
+                                value={reportType}
+                                onChange={(e) => setReportType(e.target.value)}
+                                borderColor="gray.300"
+                                _focus={{ borderColor: "#81BE41", boxShadow: "0 0 0 1px #81BE41" }}
+                            >
+                                <option value="overview">Department Overview</option>
+                                <option value="projects">Projects Report</option>
+                                <option value="tasks">Tasks Report</option>
+                                <option value="team">Team Performance</option>
+                                <option value="files">Files & Documents</option>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl mb={4}>
+                            <FormLabel fontWeight="500">Date Range</FormLabel>
+                            <Select
+                                value={dateRange}
+                                onChange={(e) => setDateRange(e.target.value)}
+                                borderColor="gray.300"
+                                _focus={{ borderColor: "#81BE41", boxShadow: "0 0 0 1px #81BE41" }}
+                            >
+                                <option value="today">Today</option>
+                                <option value="this-week">This Week</option>
+                                <option value="this-month">This Month</option>
+                                <option value="this-quarter">This Quarter</option>
+                                <option value="this-year">This Year</option>
+                                <option value="custom">Custom Range</option>
+                            </Select>
+                        </FormControl>
+
+                        {dateRange === "custom" && (
+                            <Flex gap={4} mb={4}>
+                                <FormControl>
+                                    <FormLabel fontWeight="500">Start Date</FormLabel>
+                                    <Input
+                                        type="date"
+                                        value={customDateRange.start}
+                                        onChange={(e) => setCustomDateRange({ ...customDateRange, start: e.target.value })}
+                                        borderColor="gray.300"
+                                        _focus={{ borderColor: "#81BE41", boxShadow: "0 0 0 1px #81BE41" }}
+                                    />
+                                </FormControl>
+                                <FormControl>
+                                    <FormLabel fontWeight="500">End Date</FormLabel>
+                                    <Input
+                                        type="date"
+                                        value={customDateRange.end}
+                                        onChange={(e) => setCustomDateRange({ ...customDateRange, end: e.target.value })}
+                                        borderColor="gray.300"
+                                        _focus={{ borderColor: "#81BE41", boxShadow: "0 0 0 1px #81BE41" }}
+                                    />
+                                </FormControl>
+                            </Flex>
+                        )}
+
+                        <FormControl mb={4}>
+                            <FormLabel fontWeight="500">Report Format</FormLabel>
+                            <RadioGroup value={reportFormat} onChange={setReportFormat}>
+                                <Stack direction="row" spacing={5}>
+                                    <Radio value="pdf" colorScheme="green">
+                                        PDF
+                                    </Radio>
+                                    <Radio value="xlsx" colorScheme="green">
+                                        Excel
+                                    </Radio>
+                                </Stack>
+                            </RadioGroup>
+                        </FormControl>
+
+                        <FormControl mb={4}>
+                            <FormLabel fontWeight="500">Include in Report</FormLabel>
+                            <Stack spacing={2}>
+                                <Checkbox defaultChecked colorScheme="green">
+                                    Summary Statistics
+                                </Checkbox>
+                                <Checkbox defaultChecked colorScheme="green">
+                                    Charts & Graphs
+                                </Checkbox>
+                                <Checkbox defaultChecked colorScheme="green">
+                                    Detailed Tables
+                                </Checkbox>
+                                <Checkbox defaultChecked colorScheme="green">
+                                    Trend Analysis
+                                </Checkbox>
+                            </Stack>
+                        </FormControl>
+                    </ModalBody>
+
+                    <ModalFooter borderTop="1px solid" borderColor="gray.200" py="16px">
+                        <Button
+                            bg="#81BE41"
+                            color="white"
+                            _hover={{ bg: "#6ca32e" }}
+                            mr={3}
+                            onClick={handleGenerateReport}
+                            isLoading={isGeneratingReport}
+                            loadingText="Generating..."
+                        >
+                            Generate Report
+                        </Button>
+                        <Button onClick={onGenerateReportClose} variant="outline" color="gray.700" borderColor="gray.300">
+                            Cancel
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Report Details Modal */}
+            <Modal isOpen={isReportDetailsOpen} onClose={onReportDetailsClose} size="xl" isCentered>
+                <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
+                <ModalContent bg="white" borderRadius="10px" mx={{ base: "16px", md: "0" }}>
+                    <ModalHeader borderBottom="1px solid" borderColor="gray.200" py="16px">
+                        {selectedReport && selectedReport.name}
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody pb={6} pt={4} maxH="70vh" overflowY="auto">
+                        {selectedReport && reportData && (
+                            <>
+                                {/* Report Header */}
+                                <Flex justifyContent="space-between" alignItems="center" mb="16px">
+                                    <Flex alignItems="center">
+                                        {getReportIcon(selectedReport.type)}
+                                        <Box ml="12px">
+                                            <Text fontSize="14px" color="gray.600">
+                                                Generated on {selectedReport.dateGenerated}
+                                            </Text>
+                                            <Badge
+                                                colorScheme={
+                                                    selectedReport.type === "overview"
+                                                        ? "blue"
+                                                        : selectedReport.type === "projects"
+                                                            ? "green"
+                                                            : selectedReport.type === "tasks"
+                                                                ? "orange"
+                                                                : selectedReport.type === "team"
+                                                                    ? "purple"
+                                                                    : "teal"
+                                                }
+                                                mt="4px"
+                                            >
+                                                {selectedReport.type.charAt(0).toUpperCase() + selectedReport.type.slice(1)}
+                                            </Badge>
+                                        </Box>
+                                    </Flex>
+                                    <Flex alignItems="center">
+                                        {getReportFormatIcon(selectedReport.format)}
+                                        <Text ml="8px" fontSize="14px" color="gray.600">
+                                            {selectedReport.format.toUpperCase()} • {selectedReport.size}
+                                        </Text>
+                                    </Flex>
+                                </Flex>
+
+                                <Divider my="16px" />
+
+                                {/* Report Content based on type */}
+                                {selectedReport.type === "overview" && (
+                                    <>
+                                        {/* Summary Statistics */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Summary Statistics
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Total Projects
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.totalProjects}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Total Tasks
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.totalTasks}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Completion Rate
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.completionRate}%
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Team Members
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.teamMembers}
+                                                    </Text>
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Project Status */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Project Status
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        To Do
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.projectStatus.todo}
+                                                    </Text>
+                                                    <Progress
+                                                        value={(reportData.projectStatus.todo / reportData.summary.totalProjects) * 100}
+                                                        colorScheme="gray"
+                                                        mt="8px"
+                                                    />
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        In Progress
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.projectStatus.inProgress}
+                                                    </Text>
+                                                    <Progress
+                                                        value={(reportData.projectStatus.inProgress / reportData.summary.totalProjects) * 100}
+                                                        colorScheme="orange"
+                                                        mt="8px"
+                                                    />
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Finished
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.projectStatus.finished}
+                                                    </Text>
+                                                    <Progress
+                                                        value={(reportData.projectStatus.finished / reportData.summary.totalProjects) * 100}
+                                                        colorScheme="green"
+                                                        mt="8px"
+                                                    />
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Task Status */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Task Status
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        To Do
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.taskStatus.todo}
+                                                    </Text>
+                                                    <Progress
+                                                        value={(reportData.taskStatus.todo / reportData.summary.totalTasks) * 100}
+                                                        colorScheme="gray"
+                                                        mt="8px"
+                                                    />
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        In Progress
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.taskStatus.inProgress}
+                                                    </Text>
+                                                    <Progress
+                                                        value={(reportData.taskStatus.inProgress / reportData.summary.totalTasks) * 100}
+                                                        colorScheme="orange"
+                                                        mt="8px"
+                                                    />
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Finished
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.taskStatus.finished}
+                                                    </Text>
+                                                    <Progress
+                                                        value={(reportData.taskStatus.finished / reportData.summary.totalTasks) * 100}
+                                                        colorScheme="green"
+                                                        mt="8px"
+                                                    />
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Recent Projects */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Recent Projects
+                                            </Heading>
+                                            <Table variant="simple" size="sm">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>Project Name</Th>
+                                                        <Th>Status</Th>
+                                                        <Th>Progress</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {reportData.projectsList.map((project, index) => (
+                                                        <Tr key={index}>
+                                                            <Td>{project.buttonText}</Td>
+                                                            <Td>
+                                                                <Badge
+                                                                    colorScheme={
+                                                                        project.status === "todo"
+                                                                            ? "gray"
+                                                                            : project.status === "inprogress"
+                                                                                ? "orange"
+                                                                                : "green"
+                                                                    }
+                                                                >
+                                                                    {project.status === "todo"
+                                                                        ? "To Do"
+                                                                        : project.status === "inprogress"
+                                                                            ? "In Progress"
+                                                                            : "Finished"}
+                                                                </Badge>
+                                                            </Td>
+                                                            <Td>
+                                                                <Progress
+                                                                    value={
+                                                                        project.tasks && project.tasks.length > 0
+                                                                            ? Math.round(
+                                                                                (project.tasks.filter((task) => task.completed).length /
+                                                                                    project.tasks.length) *
+                                                                                100
+                                                                            )
+                                                                            : 0
+                                                                    }
+                                                                    size="sm"
+                                                                    colorScheme={
+                                                                        project.status === "todo"
+                                                                            ? "gray"
+                                                                            : project.status === "inprogress"
+                                                                                ? "orange"
+                                                                                : "green"
+                                                                    }
+                                                                />
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+
+                                        {/* Recent Tasks */}
+                                        <Box>
+                                            <Heading size="sm" mb="16px">
+                                                Recent Tasks
+                                            </Heading>
+                                            <Table variant="simple" size="sm">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>Task Name</Th>
+                                                        <Th>Project</Th>
+                                                        <Th>Status</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {reportData.tasksList.map((task, index) => (
+                                                        <Tr key={index}>
+                                                            <Td>{task.taskName}</Td>
+                                                            <Td>{task.projectTitle}</Td>
+                                                            <Td>
+                                                                <Badge
+                                                                    colorScheme={
+                                                                        task.status === "todo"
+                                                                            ? "gray"
+                                                                            : task.status === "inprogress"
+                                                                                ? "orange"
+                                                                                : "green"
+                                                                    }
+                                                                >
+                                                                    {task.status === "todo"
+                                                                        ? "To Do"
+                                                                        : task.status === "inprogress"
+                                                                            ? "In Progress"
+                                                                            : "Finished"}
+                                                                </Badge>
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+                                    </>
+                                )}
+
+                                {selectedReport.type === "projects" && (
+                                    <>
+                                        {/* Project Summary */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Project Summary
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Total Projects
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.totalProjects}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Completion Rate
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.completionRate}%
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                    colSpan={{ base: 2, md: 1 }}
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Status Distribution
+                                                    </Text>
+                                                    <Flex mt="8px" alignItems="center" justifyContent="space-between">
+                                                        <Badge colorScheme="gray" px="2" py="1">
+                                                            To Do: {reportData.summary.todoProjects}
+                                                        </Badge>
+                                                        <Badge colorScheme="orange" px="2" py="1">
+                                                            In Progress: {reportData.summary.inProgressProjects}
+                                                        </Badge>
+                                                        <Badge colorScheme="green" px="2" py="1">
+                                                            Finished: {reportData.summary.finishedProjects}
+                                                        </Badge>
+                                                    </Flex>
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Project Status Chart */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Project Status Distribution
+                                            </Heading>
+                                            <Box
+                                                p="16px"
+                                                borderRadius="8px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                bg="white"
+                                                h="300px"
+                                            >
+                                                <Chart
+                                                    width="100%"
+                                                    height="100%"
+                                                    chartType="PieChart"
+                                                    loader={<div>Loading Chart...</div>}
+                                                    data={[
+                                                        ["Status", "Count"],
+                                                        ["To Do", reportData.summary.todoProjects],
+                                                        ["In Progress", reportData.summary.inProgressProjects],
+                                                        ["Finished", reportData.summary.finishedProjects],
+                                                    ]}
+                                                    options={{
+                                                        pieHole: 0.4,
+                                                        colors: ["#B4AEAE", "#FFA500", "#81BE41"],
+                                                        legend: { position: "right" },
+                                                        chartArea: { width: "80%", height: "80%" },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+
+                                        {/* Project List */}
+                                        <Box>
+                                            <Heading size="sm" mb="16px">
+                                                Project Details
+                                            </Heading>
+                                            <Table variant="simple" size="sm">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>Project Name</Th>
+                                                        <Th>Status</Th>
+                                                        <Th>Start Date</Th>
+                                                        <Th>End Date</Th>
+                                                        <Th>Progress</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {reportData.projectsList.map((project, index) => (
+                                                        <Tr key={index}>
+                                                            <Td>{project.buttonText}</Td>
+                                                            <Td>
+                                                                <Badge
+                                                                    colorScheme={
+                                                                        project.status === "todo"
+                                                                            ? "gray"
+                                                                            : project.status === "inprogress"
+                                                                                ? "orange"
+                                                                                : "green"
+                                                                    }
+                                                                >
+                                                                    {project.status === "todo"
+                                                                        ? "To Do"
+                                                                        : project.status === "inprogress"
+                                                                            ? "In Progress"
+                                                                            : "Finished"}
+                                                                </Badge>
+                                                            </Td>
+                                                            <Td>{project.startDate}</Td>
+                                                            <Td>{project.endDate}</Td>
+                                                            <Td>
+                                                                <Flex alignItems="center">
+                                                                    <Progress
+                                                                        value={
+                                                                            project.tasks && project.tasks.length > 0
+                                                                                ? Math.round(
+                                                                                    (project.tasks.filter((task) => task.completed).length /
+                                                                                        project.tasks.length) *
+                                                                                    100
+                                                                                )
+                                                                                : 0
+                                                                        }
+                                                                        size="sm"
+                                                                        colorScheme={
+                                                                            project.status === "todo"
+                                                                                ? "gray"
+                                                                                : project.status === "inprogress"
+                                                                                    ? "orange"
+                                                                                    : "green"
+                                                                        }
+                                                                        flex="1"
+                                                                        mr="8px"
+                                                                    />
+                                                                    <Text fontSize="12px">
+                                                                        {project.tasks && project.tasks.length > 0
+                                                                            ? Math.round(
+                                                                                (project.tasks.filter((task) => task.completed).length /
+                                                                                    project.tasks.length) *
+                                                                                100
+                                                                            )
+                                                                            : 0}
+                                                                        %
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+                                    </>
+                                )}
+
+                                {selectedReport.type === "tasks" && (
+                                    <>
+                                        {/* Task Summary */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Task Summary
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Total Tasks
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.totalTasks}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Completion Rate
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.completionRate}%
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                    colSpan={{ base: 2, md: 1 }}
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Status Distribution
+                                                    </Text>
+                                                    <Flex mt="8px" alignItems="center" justifyContent="space-between">
+                                                        <Badge colorScheme="gray" px="2" py="1">
+                                                            To Do: {reportData.summary.todoTasks}
+                                                        </Badge>
+                                                        <Badge colorScheme="orange" px="2" py="1">
+                                                            In Progress: {reportData.summary.inProgressTasks}
+                                                        </Badge>
+                                                        <Badge colorScheme="green" px="2" py="1">
+                                                            Finished: {reportData.summary.finishedTasks}
+                                                        </Badge>
+                                                    </Flex>
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Task Status Chart */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Task Status Distribution
+                                            </Heading>
+                                            <Box
+                                                p="16px"
+                                                borderRadius="8px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                bg="white"
+                                                h="300px"
+                                            >
+                                                <Chart
+                                                    width="100%"
+                                                    height="100%"
+                                                    chartType="PieChart"
+                                                    loader={<div>Loading Chart...</div>}
+                                                    data={[
+                                                        ["Status", "Count"],
+                                                        ["To Do", reportData.summary.todoTasks],
+                                                        ["In Progress", reportData.summary.inProgressTasks],
+                                                        ["Finished", reportData.summary.finishedTasks],
+                                                    ]}
+                                                    options={{
+                                                        pieHole: 0.4,
+                                                        colors: ["#B4AEAE", "#FFA500", "#81BE41"],
+                                                        legend: { position: "right" },
+                                                        chartArea: { width: "80%", height: "80%" },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+
+                                        {/* Tasks by Project */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Tasks by Project
+                                            </Heading>
+                                            <Box
+                                                p="16px"
+                                                borderRadius="8px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                bg="white"
+                                                h="300px"
+                                            >
+                                                <Chart
+                                                    width="100%"
+                                                    height="100%"
+                                                    chartType="ColumnChart"
+                                                    loader={<div>Loading Chart...</div>}
+                                                    data={[
+                                                        ["Project", "To Do", "In Progress", "Finished"],
+                                                        ...Object.entries(reportData.tasksByProject)
+                                                            .slice(0, 5)
+                                                            .map(([project, tasks]) => [
+                                                                project,
+                                                                tasks.filter((task) => task.status === "todo").length,
+                                                                tasks.filter((task) => task.status === "inprogress").length,
+                                                                tasks.filter((task) => task.status === "finished").length,
+                                                            ]),
+                                                    ]}
+                                                    options={{
+                                                        isStacked: true,
+                                                        colors: ["#B4AEAE", "#FFA500", "#81BE41"],
+                                                        legend: { position: "top" },
+                                                        chartArea: { width: "80%", height: "70%" },
+                                                        hAxis: { title: "Project" },
+                                                        vAxis: { title: "Number of Tasks" },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+
+                                        {/* Task List */}
+                                        <Box>
+                                            <Heading size="sm" mb="16px">
+                                                Task Details
+                                            </Heading>
+                                            <Table variant="simple" size="sm">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>Task Name</Th>
+                                                        <Th>Project</Th>
+                                                        <Th>Status</Th>
+                                                        <Th>Start Date</Th>
+                                                        <Th>End Date</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {reportData.tasksList.map((task, index) => (
+                                                        <Tr key={index}>
+                                                            <Td>{task.taskName}</Td>
+                                                            <Td>{task.projectTitle}</Td>
+                                                            <Td>
+                                                                <Badge
+                                                                    colorScheme={
+                                                                        task.status === "todo"
+                                                                            ? "gray"
+                                                                            : task.status === "inprogress"
+                                                                                ? "orange"
+                                                                                : "green"
+                                                                    }
+                                                                >
+                                                                    {task.status === "todo"
+                                                                        ? "To Do"
+                                                                        : task.status === "inprogress"
+                                                                            ? "In Progress"
+                                                                            : "Finished"}
+                                                                </Badge>
+                                                            </Td>
+                                                            <Td>{task.startDate}</Td>
+                                                            <Td>{task.endDate}</Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+                                    </>
+                                )}
+
+                                {selectedReport.type === "team" && (
+                                    <>
+                                        {/* Team Summary */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Team Summary
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Total Members
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.totalMembers}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Active Members
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.activeMembers}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Avg. Completion Rate
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.averageCompletionRate}%
+                                                    </Text>
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Team Performance Chart */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Team Performance
+                                            </Heading>
+                                            <Box
+                                                p="16px"
+                                                borderRadius="8px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                bg="white"
+                                                h="300px"
+                                            >
+                                                <Chart
+                                                    width="100%"
+                                                    height="100%"
+                                                    chartType="BarChart"
+                                                    loader={<div>Loading Chart...</div>}
+                                                    data={[
+                                                        ["Member", "Completion Rate"],
+                                                        ...reportData.memberPerformance.map((member) => [
+                                                            member.name,
+                                                            member.completionRate,
+                                                        ]),
+                                                    ]}
+                                                    options={{
+                                                        colors: ["#81BE41"],
+                                                        legend: { position: "none" },
+                                                        chartArea: { width: "70%", height: "80%" },
+                                                        hAxis: { title: "Completion Rate (%)", minValue: 0, maxValue: 100 },
+                                                        vAxis: { title: "Team Member" },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+
+                                        {/* Team Members List */}
+                                        <Box>
+                                            <Heading size="sm" mb="16px">
+                                                Team Member Details
+                                            </Heading>
+                                            <Table variant="simple" size="sm">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>Name</Th>
+                                                        <Th>Role</Th>
+                                                        <Th>Status</Th>
+                                                        <Th>Tasks Completed</Th>
+                                                        <Th>Completion Rate</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {reportData.memberPerformance.map((member, index) => (
+                                                        <Tr key={index}>
+                                                            <Td>{member.name}</Td>
+                                                            <Td>{member.role}</Td>
+                                                            <Td>
+                                                                <Badge colorScheme={member.isOnline ? "green" : "gray"}>
+                                                                    {member.isOnline ? "Online" : "Offline"}
+                                                                </Badge>
+                                                            </Td>
+                                                            <Td>
+                                                                {member.completedTasks} / {member.totalTasks}
+                                                            </Td>
+                                                            <Td>
+                                                                <Flex alignItems="center">
+                                                                    <Progress
+                                                                        value={member.completionRate}
+                                                                        size="sm"
+                                                                        colorScheme="green"
+                                                                        flex="1"
+                                                                        mr="8px"
+                                                                    />
+                                                                    <Text fontSize="12px">{member.completionRate}%</Text>
+                                                                </Flex>
+                                                            </Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+                                    </>
+                                )}
+
+                                {selectedReport.type === "files" && (
+                                    <>
+                                        {/* Files Summary */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Files Summary
+                                            </Heading>
+                                            <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Total Files
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.totalFiles}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Shared Files
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.sharedFiles}
+                                                    </Text>
+                                                </GridItem>
+                                                <GridItem
+                                                    p="16px"
+                                                    borderRadius="8px"
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    bg="white"
+                                                >
+                                                    <Text fontSize="14px" color="gray.600">
+                                                        Starred Files
+                                                    </Text>
+                                                    <Text fontSize="24px" fontWeight="bold">
+                                                        {reportData.summary.starredFiles}
+                                                    </Text>
+                                                </GridItem>
+                                            </Grid>
+                                        </Box>
+
+                                        {/* Files by Type Chart */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Files by Type
+                                            </Heading>
+                                            <Box
+                                                p="16px"
+                                                borderRadius="8px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                bg="white"
+                                                h="300px"
+                                            >
+                                                <Chart
+                                                    width="100%"
+                                                    height="100%"
+                                                    chartType="PieChart"
+                                                    loader={<div>Loading Chart...</div>}
+                                                    data={[
+                                                        ["File Type", "Count"],
+                                                        ...Object.entries(reportData.filesByType).map(([type, files]) => [
+                                                            type.toUpperCase(),
+                                                            files.length,
+                                                        ]),
+                                                    ]}
+                                                    options={{
+                                                        pieHole: 0.4,
+                                                        legend: { position: "right" },
+                                                        chartArea: { width: "80%", height: "80%" },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+
+                                        {/* Files by Project */}
+                                        <Box mb="24px">
+                                            <Heading size="sm" mb="16px">
+                                                Files by Project
+                                            </Heading>
+                                            <Box
+                                                p="16px"
+                                                borderRadius="8px"
+                                                border="1px solid"
+                                                borderColor="gray.200"
+                                                bg="white"
+                                                h="300px"
+                                            >
+                                                <Chart
+                                                    width="100%"
+                                                    height="100%"
+                                                    chartType="ColumnChart"
+                                                    loader={<div>Loading Chart...</div>}
+                                                    data={[
+                                                        ["Project", "Number of Files"],
+                                                        ...Object.entries(reportData.filesByProject).map(([project, files]) => [
+                                                            project,
+                                                            files.length,
+                                                        ]),
+                                                    ]}
+                                                    options={{
+                                                        colors: ["#4285F4"],
+                                                        legend: { position: "none" },
+                                                        chartArea: { width: "80%", height: "70%" },
+                                                        hAxis: { title: "Project" },
+                                                        vAxis: { title: "Number of Files" },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+
+                                        {/* Files List */}
+                                        <Box>
+                                            <Heading size="sm" mb="16px">
+                                                File Details
+                                            </Heading>
+                                            <Table variant="simple" size="sm">
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>File Name</Th>
+                                                        <Th>Type</Th>
+                                                        <Th>Project</Th>
+                                                        <Th>Size</Th>
+                                                        <Th>Uploaded By</Th>
+                                                        <Th>Upload Date</Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                    {reportData.filesList.map((file, index) => (
+                                                        <Tr key={index}>
+                                                            <Td>{file.name}</Td>
+                                                            <Td>{file.type.toUpperCase()}</Td>
+                                                            <Td>{file.project}</Td>
+                                                            <Td>{file.size}</Td>
+                                                            <Td>{file.uploadedBy}</Td>
+                                                            <Td>{file.uploadDate}</Td>
+                                                        </Tr>
+                                                    ))}
+                                                </Tbody>
+                                            </Table>
+                                        </Box>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </ModalBody>
+                    <ModalFooter borderTop="1px solid" borderColor="gray.200" py="16px">
+                        <Button
+                            leftIcon={<Download size={16} />}
+                            bg="#81BE41"
+                            color="white"
+                            _hover={{ bg: "#6ca32e" }}
+                            mr={3}
+                            onClick={() => handleReportDownload(selectedReport)}
+                        >
+                            Download Report
+                        </Button>
+                        <Button onClick={onReportDetailsClose} variant="outline" color="gray.700" borderColor="gray.300">
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Box>
-      </Flex>
-
-      {/* Invite Member Modal */}
-      <Modal isOpen={isInviteOpen} onClose={onInviteClose} isCentered motionPreset="slideInBottom">
-        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
-        <ModalContent
-          bg="white"
-          borderRadius={theme.borderRadius.md}
-          mx={{ base: "16px", md: "0" }}
-          boxShadow={theme.shadows.lg}
-          border="1px solid"
-          borderColor={theme.colors.borderColor}
-          overflow="hidden"
-        >
-          <ModalHeader
-            borderBottom="1px solid"
-            borderColor={theme.colors.borderColor}
-            py="20px"
-            fontSize={theme.fontSizes.lg}
-            fontWeight="600"
-            color={theme.colors.textColor}
-          >
-            Invite Team Member
-          </ModalHeader>
-          <ModalCloseButton color={theme.colors.textColor} />
-          <form onSubmit={handleInviteMember}>
-            <ModalBody pb={6} pt={4}>
-              <FormControl isRequired mb={5}>
-                <FormLabel fontWeight="500" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="8px">
-                  Name
-                </FormLabel>
-                <Input
-                  name="name"
-                  placeholder="Full name"
-                  borderColor={theme.colors.borderColorDarker}
-                  _focus={{ borderColor: theme.colors.primary, boxShadow: `0 0 0 1px ${theme.colors.primary}` }}
-                  _hover={{ borderColor: theme.colors.primary }}
-                  fontSize={theme.fontSizes.sm}
-                  h="44px"
-                  color={theme.colors.textColor}
-                  borderRadius={theme.borderRadius.md}
-                />
-              </FormControl>
-
-              <FormControl mt={4} isRequired mb={5}>
-                <FormLabel fontWeight="500" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="8px">
-                  Email
-                </FormLabel>
-                <Input
-                  name="email"
-                  placeholder="Email address"
-                  type="email"
-                  borderColor={theme.colors.borderColorDarker}
-                  _focus={{ borderColor: theme.colors.primary, boxShadow: `0 0 0 1px ${theme.colors.primary}` }}
-                  _hover={{ borderColor: theme.colors.primary }}
-                  fontSize={theme.fontSizes.sm}
-                  h="44px"
-                  color={theme.colors.textColor}
-                  borderRadius={theme.borderRadius.md}
-                />
-              </FormControl>
-
-              <FormControl mt={4} isRequired mb={5}>
-                <FormLabel fontWeight="500" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="8px">
-                  Role
-                </FormLabel>
-                <Input
-                  name="role"
-                  placeholder="Job title or role"
-                  borderColor={theme.colors.borderColorDarker}
-                  _focus={{ borderColor: theme.colors.primary, boxShadow: `0 0 0 1px ${theme.colors.primary}` }}
-                  _hover={{ borderColor: theme.colors.primary }}
-                  fontSize={theme.fontSizes.sm}
-                  h="44px"
-                  color={theme.colors.textColor}
-                  borderRadius={theme.borderRadius.md}
-                />
-              </FormControl>
-
-              <FormControl mt={4} isRequired>
-                <FormLabel fontWeight="500" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="8px">
-                  Department
-                </FormLabel>
-                <Select
-                  name="department"
-                  placeholder="Select department"
-                  borderColor={theme.colors.borderColorDarker}
-                  _focus={{ borderColor: theme.colors.primary, boxShadow: `0 0 0 1px ${theme.colors.primary}` }}
-                  _hover={{ borderColor: theme.colors.primary }}
-                  fontSize={theme.fontSizes.sm}
-                  h="44px"
-                  color={theme.colors.textColor}
-                  borderRadius={theme.borderRadius.md}
-                >
-                  {departments.map((department) => (
-                    <option key={department.id} value={department.name}>
-                      {department.name.charAt(0) + department.name.slice(1).toLowerCase()}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-            </ModalBody>
-
-            <ModalFooter borderTop="1px solid" borderColor={theme.colors.borderColor} py="20px" gap="12px">
-              <Button
-                bg={theme.colors.primary}
-                color="white"
-                _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-                mr={3}
-                type="submit"
-                fontSize={theme.fontSizes.sm}
-                fontWeight="600"
-                px="20px"
-                py="10px"
-                h="44px"
-                borderRadius={theme.borderRadius.md}
-                boxShadow={theme.shadows.sm}
-                transition={theme.transitions.normal}
-              >
-                Send Invitation
-              </Button>
-              <Button
-                onClick={onInviteClose}
-                variant="outline"
-                color={theme.colors.textColor}
-                borderColor={theme.colors.borderColorDarker}
-                _hover={{ bg: theme.colors.primaryLighter }}
-                fontSize={theme.fontSizes.sm}
-                fontWeight="500"
-                px="20px"
-                py="10px"
-                h="44px"
-                borderRadius={theme.borderRadius.md}
-                transition={theme.transitions.normal}
-              >
-                Cancel
-              </Button>
-            </ModalFooter>
-          </form>
-        </ModalContent>
-      </Modal>
-
-      {/* Member Details Modal */}
-      <Modal
-        isOpen={isMemberDetailsOpen}
-        onClose={onMemberDetailsClose}
-        size="lg"
-        isCentered
-        motionPreset="slideInBottom"
-      >
-        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
-        <ModalContent
-          bg="white"
-          borderRadius={theme.borderRadius.md}
-          mx={{ base: "16px", md: "0" }}
-          boxShadow={theme.shadows.lg}
-          border="1px solid"
-          borderColor={theme.colors.borderColor}
-          overflow="hidden"
-        >
-          <ModalHeader
-            borderBottom="1px solid"
-            borderColor={theme.colors.borderColor}
-            py="20px"
-            fontSize={theme.fontSizes.lg}
-            fontWeight="600"
-            color={theme.colors.textColor}
-          >
-            Team Member Details
-          </ModalHeader>
-          <ModalCloseButton color={theme.colors.textColor} />
-          <ModalBody pb={6} pt={4}>
-            {selectedMember && (
-              <>
-                <Flex alignItems="center" mb="28px">
-                  <Box position="relative">
-                    <Avatar
-                      src={selectedMember.avatar}
-                      name={selectedMember.name}
-                      size="xl"
-                      border="3px solid white"
-                      boxShadow={theme.shadows.md}
-                    />
-                    {selectedMember.isOnline && (
-                      <Box
-                        position="absolute"
-                        bottom="3px"
-                        right="3px"
-                        w="16px"
-                        h="16px"
-                        borderRadius="full"
-                        bg={theme.colors.primary}
-                        border="3px solid white"
-                      />
-                    )}
-                  </Box>
-                  <Box ml="20px">
-                    <Heading
-                      size="md"
-                      fontSize={theme.fontSizes.xl}
-                      fontWeight="700"
-                      color={theme.colors.textColor}
-                      mb="4px"
-                    >
-                      {selectedMember.name}
-                    </Heading>
-                    <Text color={theme.colors.textColor} fontSize={theme.fontSizes.md}>
-                      {selectedMember.role}
-                    </Text>
-                    <Badge
-                      colorScheme={selectedMember.isOnline ? "green" : "gray"}
-                      bg={selectedMember.isOnline ? theme.colors.primary : "gray.200"}
-                      color={selectedMember.isOnline ? "white" : "gray.700"}
-                      mt="8px"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      px="8px"
-                      py="4px"
-                      borderRadius="full"
-                    >
-                      {selectedMember.isOnline ? "Online" : "Offline"}
-                    </Badge>
-                  </Box>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<MoreVertical size={18} />}
-                      variant="ghost"
-                      ml="auto"
-                      _hover={{ bg: theme.colors.primaryLighter }}
-                      color={theme.colors.textColor}
-                    />
-                    <MenuList
-                      boxShadow={theme.shadows.lg}
-                      border="1px solid"
-                      borderColor={theme.colors.borderColor}
-                      borderRadius={theme.borderRadius.md}
-                      py="8px"
-                    >
-                      <MenuItem
-                        icon={<Mail size={16} />}
-                        fontSize={theme.fontSizes.sm}
-                        color={theme.colors.textColor}
-                        _hover={{ bg: theme.colors.primaryLighter }}
-                      >
-                        Send Email
-                      </MenuItem>
-                      <MenuItem
-                        icon={<MessageSquare size={16} />}
-                        fontSize={theme.fontSizes.sm}
-                        color={theme.colors.textColor}
-                        _hover={{ bg: theme.colors.primaryLighter }}
-                      >
-                        Send Message
-                      </MenuItem>
-                      <MenuItem
-                        icon={<Phone size={16} />}
-                        fontSize={theme.fontSizes.sm}
-                        color={theme.colors.textColor}
-                        _hover={{ bg: theme.colors.primaryLighter }}
-                      >
-                        Call
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </Flex>
-
-                <Box
-                  mb="28px"
-                  p="20px"
-                  bg={theme.colors.primaryLighter}
-                  borderRadius={theme.borderRadius.md}
-                  borderLeft={`4px solid ${theme.colors.primary}`}
-                >
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Contact Information
-                  </Heading>
-                  <Flex alignItems="center" mb="12px">
-                    <Mail size={18} color={theme.colors.textColor} />
-                    <Text ml="12px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                      {selectedMember.email}
-                    </Text>
-                  </Flex>
-                  {selectedMember.phone && (
-                    <Flex alignItems="center" mb="12px">
-                      <Phone size={18} color={theme.colors.textColor} />
-                      <Text ml="12px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                        {selectedMember.phone}
-                      </Text>
-                    </Flex>
-                  )}
-                  <Flex alignItems="center">
-                    <Briefcase size={18} color={theme.colors.textColor} />
-                    <Text ml="12px" fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                      {selectedMember.department.charAt(0) + selectedMember.department.slice(1).toLowerCase()}
-                    </Text>
-                  </Flex>
-                </Box>
-
-                <Flex mt="20px" gap="12px">
-                  <Button
-                    leftIcon={<Mail size={18} />}
-                    flex="1"
-                    size="md"
-                    bg={theme.colors.primary}
-                    color="white"
-                    _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-                    fontSize={theme.fontSizes.sm}
-                    fontWeight="500"
-                    px="16px"
-                    py="10px"
-                    h="44px"
-                    borderRadius={theme.borderRadius.md}
-                    boxShadow={theme.shadows.sm}
-                    transition={theme.transitions.normal}
-                  >
-                    Email
-                  </Button>
-                  <Button
-                    leftIcon={<MessageSquare size={18} />}
-                    flex="1"
-                    size="md"
-                    bg="white"
-                    color={theme.colors.textColor}
-                    borderColor={theme.colors.primary}
-                    border="1px solid"
-                    _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                    fontSize={theme.fontSizes.sm}
-                    fontWeight="500"
-                    px="16px"
-                    py="10px"
-                    h="44px"
-                    borderRadius={theme.borderRadius.md}
-                    transition={theme.transitions.normal}
-                  >
-                    Message
-                  </Button>
-                  <Button
-                    leftIcon={<Phone size={18} />}
-                    flex="1"
-                    size="md"
-                    bg="white"
-                    color={theme.colors.textColor}
-                    borderColor={theme.colors.borderColorDarker}
-                    border="1px solid"
-                    _hover={{ bg: theme.colors.primaryLighter, transform: "translateY(-2px)" }}
-                    fontSize={theme.fontSizes.sm}
-                    fontWeight="500"
-                    px="16px"
-                    py="10px"
-                    h="44px"
-                    borderRadius={theme.borderRadius.md}
-                    transition={theme.transitions.normal}
-                  >
-                    Call
-                  </Button>
-                </Flex>
-
-                <Divider my="24px" borderColor={theme.colors.borderColor} />
-
-                <Box mb="28px">
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Projects
-                  </Heading>
-                  {selectedMember.projects.length > 0 ? (
-                    <Table
-                      variant="simple"
-                      size="sm"
-                      borderRadius={theme.borderRadius.md}
-                      overflow="hidden"
-                      border="1px solid"
-                      borderColor={theme.colors.borderColor}
-                    >
-                      <Thead bg={theme.colors.primaryLighter}>
-                        <Tr>
-                          <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                            Project Name
-                          </Th>
-                          <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                            Status
-                          </Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {getMemberProjects(selectedMember.projects).map((project, index) => (
-                          <Tr key={index} _hover={{ bg: theme.colors.primaryLighter }}>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              {project.buttonText}
-                            </Td>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              <Badge
-                                colorScheme={
-                                  project.status === "todo"
-                                    ? "gray"
-                                    : project.status === "inprogress"
-                                      ? "orange"
-                                      : "green"
-                                }
-                                bg={
-                                  project.status === "todo"
-                                    ? "gray.200"
-                                    : project.status === "inprogress"
-                                      ? "orange.100"
-                                      : theme.colors.primaryLighter
-                                }
-                                color={
-                                  project.status === "todo"
-                                    ? "gray.700"
-                                    : project.status === "inprogress"
-                                      ? "orange.700"
-                                      : theme.colors.primary
-                                }
-                                fontSize={theme.fontSizes.xs}
-                                fontWeight="500"
-                                px="8px"
-                                py="4px"
-                                borderRadius="full"
-                              >
-                                {project.status === "todo"
-                                  ? "To Do"
-                                  : project.status === "inprogress"
-                                    ? "In Progress"
-                                    : "Finished"}
-                              </Badge>
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                  ) : (
-                    <Text
-                      color={theme.colors.textColor}
-                      fontSize={theme.fontSizes.sm}
-                      p="16px"
-                      bg={theme.colors.primaryLighter}
-                      borderRadius={theme.borderRadius.md}
-                      textAlign="center"
-                    >
-                      No projects assigned
-                    </Text>
-                  )}
-                </Box>
-
-                <Box>
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Tasks
-                  </Heading>
-                  {selectedMember.tasks.length > 0 ? (
-                    <Table
-                      variant="simple"
-                      size="sm"
-                      borderRadius={theme.borderRadius.md}
-                      overflow="hidden"
-                      border="1px solid"
-                      borderColor={theme.colors.borderColor}
-                    >
-                      <Thead bg={theme.colors.primaryLighter}>
-                        <Tr>
-                          <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                            Task Name
-                          </Th>
-                          <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                            Status
-                          </Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {getMemberTasks(selectedMember.tasks).map((task, index) => (
-                          <Tr key={index} _hover={{ bg: theme.colors.primaryLighter }}>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              {task.taskName}
-                            </Td>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              <Badge
-                                colorScheme={
-                                  task.status === "todo" ? "gray" : task.status === "inprogress" ? "orange" : "green"
-                                }
-                                bg={
-                                  task.status === "todo"
-                                    ? "gray.200"
-                                    : task.status === "inprogress"
-                                      ? "orange.100"
-                                      : theme.colors.primaryLighter
-                                }
-                                color={
-                                  task.status === "todo"
-                                    ? "gray.700"
-                                    : task.status === "inprogress"
-                                      ? "orange.700"
-                                      : theme.colors.primary
-                                }
-                                fontSize={theme.fontSizes.xs}
-                                fontWeight="500"
-                                px="8px"
-                                py="4px"
-                                borderRadius="full"
-                              >
-                                {task.status === "todo"
-                                  ? "To Do"
-                                  : task.status === "inprogress"
-                                    ? "In Progress"
-                                    : "Finished"}
-                              </Badge>
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                  ) : (
-                    <Text
-                      color={theme.colors.textColor}
-                      fontSize={theme.fontSizes.sm}
-                      p="16px"
-                      bg={theme.colors.primaryLighter}
-                      borderRadius={theme.borderRadius.md}
-                      textAlign="center"
-                    >
-                      No tasks assigned
-                    </Text>
-                  )}
-                </Box>
-
-                <Box mt="28px">
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Recent Activity
-                  </Heading>
-                  <Box
-                    p="16px"
-                    bg={theme.colors.primaryLighter}
-                    borderRadius={theme.borderRadius.md}
-                    borderLeft={`4px solid ${theme.colors.primary}`}
-                  >
-                    <Flex alignItems="center" mb="12px">
-                      <Box
-                        w="10px"
-                        h="10px"
-                        borderRadius="full"
-                        bg={theme.colors.primary}
-                        mr="12px"
-                        boxShadow={theme.shadows.sm}
-                      />
-                      <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                        Completed task "Create API documentation" - 2 days ago
-                      </Text>
-                    </Flex>
-                    <Flex alignItems="center" mb="12px">
-                      <Box w="10px" h="10px" borderRadius="full" bg="#FFA500" mr="12px" boxShadow={theme.shadows.sm} />
-                      <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                        Started working on "Design user interface" - 3 days ago
-                      </Text>
-                    </Flex>
-                    <Flex alignItems="center">
-                      <Box
-                        w="10px"
-                        h="10px"
-                        borderRadius="full"
-                        bg={theme.colors.primary}
-                        mr="12px"
-                        boxShadow={theme.shadows.sm}
-                      />
-                      <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                        Joined project "Peak and Dale HRMS" - 1 week ago
-                      </Text>
-                    </Flex>
-                  </Box>
-                </Box>
-              </>
-            )}
-          </ModalBody>
-          <ModalFooter borderTop="1px solid" borderColor={theme.colors.borderColor} py="20px">
-            <Button
-              bg={theme.colors.primary}
-              color="white"
-              _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-              mr={3}
-              onClick={onMemberDetailsClose}
-              fontSize={theme.fontSizes.sm}
-              fontWeight="600"
-              px="20px"
-              py="10px"
-              h="44px"
-              borderRadius={theme.borderRadius.md}
-              boxShadow={theme.shadows.sm}
-              transition={theme.transitions.normal}
-            >
-              Close
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Department Details Modal */}
-      <Modal
-        isOpen={isDepartmentDetailsOpen}
-        onClose={onDepartmentDetailsClose}
-        size="lg"
-        isCentered
-        motionPreset="slideInBottom"
-      >
-        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
-        <ModalContent
-          bg="white"
-          borderRadius={theme.borderRadius.md}
-          mx={{ base: "16px", md: "0" }}
-          boxShadow={theme.shadows.lg}
-          border="1px solid"
-          borderColor={theme.colors.borderColor}
-          overflow="hidden"
-        >
-          <ModalHeader
-            borderBottom="1px solid"
-            borderColor={theme.colors.borderColor}
-            py="20px"
-            fontSize={theme.fontSizes.lg}
-            fontWeight="600"
-            color={theme.colors.textColor}
-          >
-            Department Details
-          </ModalHeader>
-          <ModalCloseButton color={theme.colors.textColor} />
-          <ModalBody pb={6} pt={4}>
-            {selectedDepartment && (
-              <>
-                <Heading
-                  size="md"
-                  mb="10px"
-                  fontSize={theme.fontSizes.xl}
-                  fontWeight="700"
-                  color={theme.colors.textColor}
-                >
-                  {selectedDepartment.name.charAt(0) + selectedDepartment.name.slice(1).toLowerCase()}
-                </Heading>
-                <Text color={theme.colors.textColor} mb="20px" fontSize={theme.fontSizes.sm} lineHeight="1.6">
-                  {selectedDepartment.description}
-                </Text>
-
-                <Flex
-                  mb="20px"
-                  p="20px"
-                  bg={theme.colors.primaryLighter}
-                  borderRadius={theme.borderRadius.md}
-                  borderLeft={`4px solid ${theme.colors.primary}`}
-                  boxShadow={theme.shadows.sm}
-                >
-                  <Box flex="1">
-                    <Text fontWeight="600" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="6px">
-                      Team Lead
-                    </Text>
-                    <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                      {selectedDepartment.lead}
-                    </Text>
-                  </Box>
-                  <Box flex="1">
-                    <Text fontWeight="600" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="6px">
-                      Members
-                    </Text>
-                    <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                      {selectedDepartment.memberCount}
-                    </Text>
-                  </Box>
-                  <Box flex="1">
-                    <Text fontWeight="600" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="6px">
-                      Projects
-                    </Text>
-                    <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                      {selectedDepartment.projectCount}
-                    </Text>
-                  </Box>
-                  <Box flex="1">
-                    <Text fontWeight="600" fontSize={theme.fontSizes.sm} color={theme.colors.textColor} mb="6px">
-                      Tasks
-                    </Text>
-                    <Text fontSize={theme.fontSizes.sm} color={theme.colors.textColor}>
-                      {selectedDepartment.taskCount}
-                    </Text>
-                  </Box>
-                </Flex>
-
-                <Divider my="24px" borderColor={theme.colors.borderColor} />
-
-                <Box mb="28px">
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Team Members
-                  </Heading>
-                  <Table
-                    variant="simple"
-                    size="sm"
-                    borderRadius={theme.borderRadius.md}
-                    overflow="hidden"
-                    border="1px solid"
-                    borderColor={theme.colors.borderColor}
-                  >
-                    <Thead bg={theme.colors.primaryLighter}>
-                      <Tr>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Name
-                        </Th>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Role
-                        </Th>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Status
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {teamMembers
-                        .filter((member) => member.department === selectedDepartment.name)
-                        .map((member) => (
-                          <Tr key={member.id} _hover={{ bg: theme.colors.primaryLighter }}>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              <Flex alignItems="center">
-                                <Avatar
-                                  size="sm"
-                                  name={member.name}
-                                  src={member.avatar}
-                                  mr="10px"
-                                  border="2px solid white"
-                                  boxShadow={theme.shadows.sm}
-                                />
-                                {member.name}
-                              </Flex>
-                            </Td>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              {member.role}
-                            </Td>
-                            <Td
-                              fontSize={theme.fontSizes.sm}
-                              color={theme.colors.textColor}
-                              py="12px"
-                              borderColor={theme.colors.borderColor}
-                            >
-                              <Badge
-                                colorScheme={member.isOnline ? "green" : "gray"}
-                                bg={member.isOnline ? theme.colors.primary : "gray.200"}
-                                color={member.isOnline ? "white" : "gray.700"}
-                                fontSize={theme.fontSizes.xs}
-                                fontWeight="500"
-                                px="8px"
-                                py="4px"
-                                borderRadius="full"
-                              >
-                                {member.isOnline ? "Online" : "Offline"}
-                              </Badge>
-                            </Td>
-                          </Tr>
-                        ))}
-                    </Tbody>
-                  </Table>
-                </Box>
-
-                <Box mt="24px">
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Team Skills
-                  </Heading>
-                  <Flex flexWrap="wrap" gap="10px">
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="blue"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      JavaScript
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="green"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      React
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="purple"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      UI/UX Design
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="orange"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      Project Management
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="cyan"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      API Development
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="pink"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      Database Design
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="yellow"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      Mobile Development
-                    </Badge>
-                    <Badge
-                      px="10px"
-                      py="6px"
-                      borderRadius="full"
-                      colorScheme="teal"
-                      fontSize={theme.fontSizes.xs}
-                      fontWeight="500"
-                      boxShadow={theme.shadows.sm}
-                    >
-                      DevOps
-                    </Badge>
-                  </Flex>
-                </Box>
-
-                <Divider my="24px" borderColor={theme.colors.borderColor} />
-
-                <Box mb="28px">
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Projects
-                  </Heading>
-                  <Table
-                    variant="simple"
-                    size="sm"
-                    borderRadius={theme.borderRadius.md}
-                    overflow="hidden"
-                    border="1px solid"
-                    borderColor={theme.colors.borderColor}
-                  >
-                    <Thead bg={theme.colors.primaryLighter}>
-                      <Tr>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Project Name
-                        </Th>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Status
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {getDepartmentProjects(selectedDepartment.name).map((project, index) => (
-                        <Tr key={index} _hover={{ bg: theme.colors.primaryLighter }}>
-                          <Td
-                            fontSize={theme.fontSizes.sm}
-                            color={theme.colors.textColor}
-                            py="12px"
-                            borderColor={theme.colors.borderColor}
-                          >
-                            {project.buttonText}
-                          </Td>
-                          <Td
-                            fontSize={theme.fontSizes.sm}
-                            color={theme.colors.textColor}
-                            py="12px"
-                            borderColor={theme.colors.borderColor}
-                          >
-                            <Badge
-                              colorScheme={
-                                project.status === "todo"
-                                  ? "gray"
-                                  : project.status === "inprogress"
-                                    ? "orange"
-                                    : "green"
-                              }
-                              bg={
-                                project.status === "todo"
-                                  ? "gray.200"
-                                  : project.status === "inprogress"
-                                    ? "orange.100"
-                                    : theme.colors.primaryLighter
-                              }
-                              color={
-                                project.status === "todo"
-                                  ? "gray.700"
-                                  : project.status === "inprogress"
-                                    ? "orange.700"
-                                    : theme.colors.primary
-                              }
-                              fontSize={theme.fontSizes.xs}
-                              fontWeight="500"
-                              px="8px"
-                              py="4px"
-                              borderRadius="full"
-                            >
-                              {project.status === "todo"
-                                ? "To Do"
-                                : project.status === "inprogress"
-                                  ? "In Progress"
-                                  : "Finished"}
-                            </Badge>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </Box>
-
-                <Box>
-                  <Heading
-                    size="sm"
-                    mb="16px"
-                    fontSize={theme.fontSizes.md}
-                    fontWeight="600"
-                    color={theme.colors.textColor}
-                  >
-                    Tasks
-                  </Heading>
-                  <Table
-                    variant="simple"
-                    size="sm"
-                    borderRadius={theme.borderRadius.md}
-                    overflow="hidden"
-                    border="1px solid"
-                    borderColor={theme.colors.borderColor}
-                  >
-                    <Thead bg={theme.colors.primaryLighter}>
-                      <Tr>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Task Name
-                        </Th>
-                        <Th color={theme.colors.textColor} fontSize={theme.fontSizes.xs} fontWeight="600" py="12px">
-                          Status
-                        </Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {getDepartmentTasks(selectedDepartment.name).map((task, index) => (
-                        <Tr key={index} _hover={{ bg: theme.colors.primaryLighter }}>
-                          <Td
-                            fontSize={theme.fontSizes.sm}
-                            color={theme.colors.textColor}
-                            py="12px"
-                            borderColor={theme.colors.borderColor}
-                          >
-                            {task.taskName}
-                          </Td>
-                          <Td
-                            fontSize={theme.fontSizes.sm}
-                            color={theme.colors.textColor}
-                            py="12px"
-                            borderColor={theme.colors.borderColor}
-                          >
-                            <Badge
-                              colorScheme={
-                                task.status === "todo" ? "gray" : task.status === "inprogress" ? "orange" : "green"
-                              }
-                              bg={
-                                task.status === "todo"
-                                  ? "gray.200"
-                                  : task.status === "inprogress"
-                                    ? "orange.100"
-                                    : theme.colors.primaryLighter
-                              }
-                              color={
-                                task.status === "todo"
-                                  ? "gray.700"
-                                  : task.status === "inprogress"
-                                    ? "orange.700"
-                                    : theme.colors.primary
-                              }
-                              fontSize={theme.fontSizes.xs}
-                              fontWeight="500"
-                              px="8px"
-                              py="4px"
-                              borderRadius="full"
-                            >
-                              {task.status === "todo"
-                                ? "To Do"
-                                : task.status === "inprogress"
-                                  ? "In Progress"
-                                  : "Finished"}
-                            </Badge>
-                          </Td>
-                        </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                </Box>
-              </>
-            )}
-          </ModalBody>
-          <ModalFooter borderTop="1px solid" borderColor={theme.colors.borderColor} py="20px">
-            <Button
-              bg={theme.colors.primary}
-              color="white"
-              _hover={{ bg: theme.colors.primaryHover, transform: "translateY(-2px)" }}
-              mr={3}
-              onClick={onDepartmentDetailsClose}
-              fontSize={theme.fontSizes.sm}
-              fontWeight="600"
-              px="20px"
-              py="10px"
-              h="44px"
-              borderRadius={theme.borderRadius.md}
-              boxShadow={theme.shadows.sm}
-              transition={theme.transitions.normal}
-            >
-              Close
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
-  )
+    )
 }
